@@ -34,15 +34,15 @@ export function ValidacionModal({
   isOpen,
   onClose,
   onToggleChecklist,
-  onAprobar,
-  onRechazar,
-  onEscalar,
-  puedeAprobar,
-  puedeRechazar,
-  puedeEscalar,
-  checklistCompleto
+  onAprobar: _onAprobar,
+  onRechazar: _onRechazar,
+  onEscalar: _onEscalar,
+  puedeAprobar: _puedeAprobar,
+  puedeRechazar: _puedeRechazar,
+  puedeEscalar: _puedeEscalar,
+  checklistCompleto: _checklistCompleto
 }: ValidacionModalProps) {
-  const [justificacion, setJustificacion] = useState('');
+  // const [justificacion, setJustificacion] = useState('');
   const [activeTab, setActiveTab] = useState<'checklist' | 'conflictos' | 'historial'>('checklist');
 
   if (!validacion) return null;

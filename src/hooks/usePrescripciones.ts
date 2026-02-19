@@ -254,7 +254,7 @@ export function usePrescripcionAlertas(): UsePrescripcionAlertasReturn {
     console.log(`Enviando alerta para ${prescripcionId} - ${diasAntes} dias antes`);
   }, []);
 
-  const marcarAlertaLeida = useCallback((alertaId: string) => {
+  const marcarAlertaLeida = useCallback((_alertaId: string) => {
     setAlertasPendientes(prev => Math.max(0, prev - 1));
   }, []);
 

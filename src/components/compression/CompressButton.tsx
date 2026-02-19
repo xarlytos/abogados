@@ -2,7 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { useFileCompression } from '../../hooks/useFileCompression';
 import { CompressModal, type CompressModalOptions } from './CompressModal';
 import { CompressionProgress } from './CompressionProgress';
-import type { CompressionFormat } from '../../types/compression';
+// Importación preservada para referencia de tipos
+// type CompressionFormat = 'zip' | '7z';
 
 interface CompressButtonProps {
   files: File[];

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Image, FileSpreadsheet, FileCode, File, X, Eye, Download } from 'lucide-react';
+import { FileText, Image, FileSpreadsheet, FileCode, File, X, Eye } from 'lucide-react';
 import { getFileExtension, formatFileSize } from '../../utils/compression/fileHelpers';
 
 interface FilePreviewProps {

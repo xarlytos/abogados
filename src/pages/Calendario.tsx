@@ -1,17 +1,17 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, ChevronLeft, ChevronRight, Clock, MapPin, Calendar, 
   AlertTriangle, CheckCircle2, Users, Briefcase, Gavel, 
   FileText, Building2, UserCircle, Filter, X, Save, Trash2,
-  List, LayoutGrid, Columns
+  LayoutGrid, Columns, List
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { eventosData, diasSemana, meses, getEventTypeColor, type EventoCalendario } from '@/data/calendarioData';
 import { useRole } from '@/hooks/useRole';
 import type { UserRole } from '@/types/roles';
 import { 
-  MiniCalendar, EventCard, EventTooltip, SearchFilters, 
+  MiniCalendar, SearchFilters, 
   CalendarStats, AgendaView, type FilterState 
 } from '@/components/calendario';
 

@@ -62,7 +62,7 @@ function ExpedienteDocumentosExample() {
 // ============================================
 
 function BibliotecaExample() {
-  const [selectedTemplates, setSelectedTemplates] = useState<File[]>([]);
+  const [selectedTemplates] = useState<File[]>([]);
 
   return (
     <div className="p-4">
@@ -122,12 +122,14 @@ function ModalCompresionExample() {
     isCompressing,
     progress,
     currentFile,
-    compressFiles,
+    // compressFiles - disponible para uso futuro
     cancelCompression,
     error,
     result
   } = useFileCompression();
 
+  // Función de ejemplo para compresión
+  /*
   const handleCompressAll = async (files: File[]) => {
     const compressionResult = await compressFiles(files, {
       filename: 'Documentos_Comprimidos',
@@ -138,6 +140,7 @@ function ModalCompresionExample() {
       console.log('Compresión exitosa:', compressionResult.filename);
     }
   };
+  */
 
   return (
     <>

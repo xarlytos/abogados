@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
-  ShieldAlert, Search, Filter, AlertTriangle, CheckCircle2, 
+  ShieldAlert, Search, CheckCircle2, 
   Clock, AlertOctagon, ChevronRight, RefreshCw, 
-  FileSearch, Eye, CheckSquare, X, AlertCircle, Shield
+  FileSearch, CheckSquare, Shield
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useConflictos } from '@/hooks/useConflictos';
-import { useRole } from '@/hooks/useRole';
+
 import type { 
   Conflicto, 
   TipoConflicto, 
@@ -54,7 +54,7 @@ export default function Conflictos() {
 
   if (!permisos.puedeVer) {
     return (
-      <AppLayout>
+      <AppLayout title="Conflictos - Acceso Restringido">
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
             <Shield className="w-16 h-16 text-slate-500 mx-auto mb-4" />
@@ -67,7 +67,7 @@ export default function Conflictos() {
   }
 
   return (
-    <AppLayout>
+    <AppLayout title="Detección de Conflictos">
       <div className="p-6 max-w-[1600px] mx-auto">
         <div className="mb-6">
           <div className="flex items-center gap-2 text-sm text-theme-secondary mb-2">

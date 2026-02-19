@@ -6,16 +6,15 @@ import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, FileText, Send, CheckCircle, AlertCircle, 
-  ChevronRight, ChevronLeft, Pen, Users, Settings,
-  Clock, Shield, Award, Pencil, Key, Fingerprint
+  ChevronRight, ChevronLeft, Pen, Users,
+  Clock, Shield, Key
 } from 'lucide-react';
 import type { 
   SignatureModalProps, 
-  SignatureRequest, 
-  SignedDocument,
   SignatureType,
   SignatureWorkflow,
-  Signer
+  Signer,
+  SignedDocument
 } from '@/types/signature';
 import { SIGNATURE_TYPE_DESCRIPTIONS, WORKFLOW_DESCRIPTIONS } from '@/types/signature';
 import { useSignature } from '@/hooks/useSignature';
@@ -393,6 +392,7 @@ function ConfigStep({
   onMessageChange,
   allowedTypes,
 }: ConfigStepProps) {
+  /* Iconos por tipo de firma (disponibles para uso futuro)
   const typeIcons: Record<SignatureType, typeof Pencil> = {
     simple: Pencil,
     advanced: Shield,
@@ -400,6 +400,7 @@ function ConfigStep({
     biometric: Fingerprint,
     certificate: Key,
   };
+  */
 
   return (
     <div className="space-y-6">

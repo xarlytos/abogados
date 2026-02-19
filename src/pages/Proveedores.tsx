@@ -2,11 +2,9 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Building2, Search, Plus, Phone, Mail, MapPin, Star,
-  FileText, TrendingUp, AlertCircle, CheckCircle2,
-  DollarSign, Edit2, FileDown, User, Lock, Crown,
-  Users, CheckCircle, X, Trash2, MoreVertical,
-  LayoutGrid, List, Filter, TrendingDown, CircleDot,
-  Clock, Package
+  FileText, TrendingUp, TrendingDown, AlertCircle, CheckCircle2,
+  DollarSign, Edit2, FileDown, User, Lock,
+  CheckCircle, X, Trash2
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { 
@@ -158,10 +156,10 @@ export default function Proveedores() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('proveedores');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [categoryFilter,] = useState('all');
+  const [,] = useState<'grid' | 'list'>('grid'); // viewMode - disponible para uso futuro
   const [selectedProveedor, setSelectedProveedor] = useState<Proveedor | null>(null);
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [,] = useState<string | null>(null); // openMenuId - disponible para uso futuro
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [editingProveedor, setEditingProveedor] = useState<Proveedor | null>(null);
   const [toast, setToast] = useState<{message: string; type: 'success' | 'error'} | null>(null);
@@ -180,12 +178,13 @@ export default function Proveedores() {
     getCategoryDistribution(proveedoresData), 
   [proveedoresData]);
 
-  // Categorías únicas para filtro
+  /* Categorías únicas para filtro (disponible para uso futuro)
   const uniqueCategories = useMemo(() => {
     const cats = new Set<string>();
     proveedoresData.forEach(p => p.categories.forEach(c => cats.add(c)));
     return Array.from(cats).sort();
   }, [proveedoresData]);
+  */
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -466,7 +465,7 @@ export default function Proveedores() {
                     paddingAngle={2}
                     dataKey="value"
                   >
-                    {categoryDistribution.map((entry, index) => (
+                    {categoryDistribution.map((_entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>

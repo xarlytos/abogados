@@ -3,13 +3,13 @@
 // ============================================
 
 import { useState, useCallback } from 'react';
-import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, X, GripVertical, Mail, User, Shield,
   ArrowUp, ArrowDown, AlertCircle, CheckCircle,
   Clock, UserCheck, UserX
 } from 'lucide-react';
-import type { Signer, SignerListProps, SignerRole, SignatureWorkflow } from '@/types/signature';
+import type { Signer, SignerListProps, SignerRole } from '@/types/signature';
 
 const roleLabels: Record<SignerRole, { label: string; icon: typeof User; color: string }> = {
   cliente: { label: 'Cliente', icon: User, color: 'text-blue-400' },
@@ -33,7 +33,7 @@ export function SignerList({
   workflow,
   onAddSigner,
   onRemoveSigner,
-  onUpdateSigner,
+  onUpdateSigner: _onUpdateSigner,
   onReorderSigners,
   readOnly = false,
   maxSigners = 50,

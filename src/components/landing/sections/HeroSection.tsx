@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, useMotionValue, useTransform, useSpring, AnimatePresence } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { ArrowRight, Play, Scale, Shield, Clock, FileText, TrendingUp, Users, Zap, CheckCircle, Star, BarChart3, Calendar, Briefcase } from 'lucide-react';
 
 /* ─────────────────────────────────────────────
@@ -255,7 +255,7 @@ export function HeroSection() {
   };
   const fadeUp = {
     hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const } },
   };
 
   return (
@@ -359,7 +359,7 @@ export function HeroSection() {
                 <motion.span
                   className="inline-block w-[3px] h-[0.9em] bg-accent ml-1 align-middle rounded-sm"
                   animate={{ opacity: [1, 0, 1] }}
-                  transition={{ duration: 0.8, repeat: Infinity, ease: 'steps(2)' }}
+                  transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
                 />
               </span>
             </motion.h1>
@@ -459,7 +459,6 @@ export function HeroSection() {
                     className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white ring-2"
                     style={{
                       background: avatar.bg,
-                      ringColor: 'var(--bg-secondary)',
                     }}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}

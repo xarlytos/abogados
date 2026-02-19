@@ -216,6 +216,32 @@ export interface SignatureModalProps {
 }
 
 // ============================================
+// TIPOS PARA CREACIÓN DE SOLICITUDES
+// ============================================
+
+/**
+ * Datos para crear una nueva solicitud de firma
+ */
+export interface CreateSignatureRequestData {
+  documentId: string;
+  documentName: string;
+  documentUrl?: string;
+  signers: Partial<Signer>[];
+  signatureType: SignatureType;
+  workflow: SignatureWorkflow;
+  message?: string;
+}
+
+/**
+ * Datos para firmar un documento
+ */
+export interface SignDocumentData {
+  type: SignatureType;
+  signatureImage?: string;
+  certificateId?: string;
+}
+
+// ============================================
 // PERMISOS POR ROL
 // ============================================
 

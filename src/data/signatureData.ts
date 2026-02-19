@@ -6,7 +6,6 @@ import type {
   SignatureRequest, 
   SignedDocument, 
   SignatureField,
-  Signer,
   SignatureConfig 
 } from '@/types/signature';
 

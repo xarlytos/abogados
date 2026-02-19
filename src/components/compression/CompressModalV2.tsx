@@ -4,7 +4,7 @@ import { DragAndDropZone } from './DragAndDropZone';
 import { FilePreviewGrid } from './FilePreview';
 import { CompressionHistory } from './CompressionHistory';
 import type { CompressionHistoryItem } from './CompressionHistory';
-import { CompressButton } from './CompressButton';
+
 import { CompressionProgress } from './CompressionProgress';
 import { useFileCompression } from '../../hooks/useFileCompression';
 import type { CompressionFormat } from '../../types/compression';

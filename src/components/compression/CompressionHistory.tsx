@@ -29,7 +29,7 @@ export const CompressionHistory: React.FC<CompressionHistoryProps> = ({
   onClear,
   maxItems = 10
 }) => {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [,] = useState<string | null>(null); // expandedId - disponible para uso futuro
 
   const getStatusIcon = (status: CompressionHistoryItem['status']) => {
     switch (status) {
@@ -42,6 +42,7 @@ export const CompressionHistory: React.FC<CompressionHistoryProps> = ({
     }
   };
 
+  /* Función disponible para uso futuro
   const getStatusText = (status: CompressionHistoryItem['status']) => {
     switch (status) {
       case 'completed':
@@ -52,6 +53,7 @@ export const CompressionHistory: React.FC<CompressionHistoryProps> = ({
         return 'Procesando...';
     }
   };
+  */
 
   const formatDate = (date: Date): string => {
     const now = new Date();

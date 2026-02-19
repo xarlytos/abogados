@@ -2,8 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import type { 
   CompressOptions, 
   CompressionResult, 
-  CompressionProgress,
-  CompressionFormat 
+  CompressionProgress
 } from '../types/compression';
 import { compressionService } from '../services/compressionService';
 import { calculateTotalSize, formatFileSize } from '../utils/compression/fileHelpers';

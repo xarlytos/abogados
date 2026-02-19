@@ -350,7 +350,7 @@ export default function Clientes() {
   const [dateFromFilter, setDateFromFilter] = useState('');
   const [dateToFilter, setDateToFilter] = useState('');
   const [detailTab, setDetailTab] = useState<'info' | 'expedientes' | 'actividad' | 'facturacion'>('info');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
   const itemsPerPage = 12;
   
   // Estados para modales

@@ -1,6 +1,6 @@
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import type { CompressionFormat, FileInfo, CompressionProgress } from '../../types/compression';
+import type { CompressionProgress } from '../../types/compression';
 import { formatFileSize, sanitizeFileName } from './fileHelpers';
 
 /**
@@ -22,7 +22,8 @@ export interface ZipGenerationOptions {
 export async function generateZipInBrowser(
   options: ZipGenerationOptions
 ): Promise<Blob> {
-  const { files, filename, onProgress } = options;
+  const { files, onProgress } = options;
+  // filename está disponible en options pero no se usa directamente aquí
   const zip = new JSZip();
   
   const totalBytes = files.reduce((sum, f) => sum + f.size, 0);

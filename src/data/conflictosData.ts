@@ -2,7 +2,6 @@ import type {
   Conflicto,
   AnalisisConflicto,
   ReglaConflicto,
-  CriterioConflicto,
   TipoConflicto,
   EstadoConflicto,
   SeveridadConflicto

@@ -5,22 +5,20 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { 
   SignatureRequest, 
-  SignedDocument, 
-  Signer, 
   SignatureType, 
   SignatureWorkflow,
   SignaturePermissions,
-  SignatureField,
   SignatureConfig,
-  Signature
+  Signature,
+  Signer,
+  SignatureField
 } from '@/types/signature';
 import { SIGNATURE_PERMISSIONS, DEFAULT_SIGNATURE_CONFIG } from '@/types/signature';
 import type { UserRole } from '@/types/roles';
 import { 
-  mockSignatureRequests, 
-  mockSignedDocuments,
-  mockSignatureFields,
-  mockSignatureConfigs 
+  mockSignatureRequests,
+  mockSignatureConfigs,
+  mockSignatureFields
 } from '@/data/signatureData';
 
 // ============================================

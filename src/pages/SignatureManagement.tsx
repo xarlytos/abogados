@@ -6,29 +6,24 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileSignature, Clock, CheckCircle, XCircle, AlertCircle,
-  Search, Filter, Download, Eye, MoreVertical, Calendar,
-  User, Mail, RefreshCw, TrendingUp, TrendingDown, Users,
+  Search, Download, Eye, MoreVertical, Calendar,
+  Mail, RefreshCw, TrendingUp,
   FileText, Shield, Award, Fingerprint, Key,
   ChevronLeft, ChevronRight, ArrowUpDown,
-  Pen, Send, Trash2, Archive, Bell
+  Pen, Send, Trash2, Bell
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useRole } from '@/hooks/useRole';
 import { 
   SignatureModal, 
   useSignature, 
-  SignatureStatusBadge,
   SignatureTypeBadge,
   SignerListCompact,
-  mockSignatureRequests,
-  mockSignatureStats 
+  mockSignatureRequests
 } from '@/components/signature';
 import type { 
   SignatureRequest, 
-  SignatureType,
-  SignatureWorkflow,
-  Signer,
-  Signature 
+  SignatureType
 } from '@/components/signature';
 
 // ============================================
@@ -55,7 +50,7 @@ interface SignatureFilters {
 // ============================================
 
 export default function SignatureManagement() {
-  const { role, roleConfig } = useRole();
+  const { role } = useRole();
   const signature = useSignature(role, 'usuario@bufete.com');
   
   // Estado para filtros
@@ -592,7 +587,7 @@ export default function SignatureManagement() {
                 .filter(r => r.signatures.length > 0)
                 .flatMap(r => r.signatures.map(sig => ({ ...sig, documentName: r.documentName })))
                 .slice(0, 5)
-                .map((sig, idx) => (
+                .map((sig) => (
                   <div key={sig.id} className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-xl">
                     <div className="w-10 h-10 bg-emerald-500/10 rounded-full flex items-center justify-center">
                       <CheckCircle className="w-5 h-5 text-emerald-500" />
@@ -651,7 +646,7 @@ export default function SignatureManagement() {
         documentId={selectedRequest?.documentId || 'new-doc'}
         documentName={selectedRequest?.documentName || 'Nuevo Documento'}
         requestId={selectedRequest?.id}
-        onComplete={(result) => {
+        onComplete={(_result) => {
           setSignatureModalOpen(false);
           // Aquí se recargarían los datos
         }}

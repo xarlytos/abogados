@@ -166,8 +166,7 @@ function EjemploIntegracionCompleta() {
     result,
     error,
     compressFiles,
-    cancelCompression,
-    reset
+    cancelCompression
   } = useFileCompression();
 
   const handleCompress = async () => {

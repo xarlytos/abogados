@@ -1241,7 +1241,7 @@ export default function Mensajes() {
         mode="sign"
         documentId={documentToSign?.id || ''}
         documentName={documentToSign?.name || ''}
-        onComplete={(result) => {
+        onComplete={(_result) => {
           showToast(`Documento ${documentToSign?.name} firmado correctamente`, 'success');
           setSignatureModalOpen(false);
         }}

@@ -578,7 +578,7 @@ interface SignStepProps {
 function SignStep({
   documentName,
   signatureType,
-  signatureImage,
+  signatureImage: _signatureImage,
   onSignatureChange,
   allowedTypes,
   onTypeChange,

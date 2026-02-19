@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentación de Páginas - ERP Bufetes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-card-hover: #1a1a25;
+            --bg-elevated: #1e1e2a;
+            --accent: #f59e0b;
+            --accent-light: #fbbf24;
+            --accent-glow: rgba(245, 158, 11, 0.3);
+            --accent-subtle: rgba(245, 158, 11, 0.1);
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.15);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --purple: #8b5cf6;
+            --cyan: #06b6d4;
+            --pink: #ec4899;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        /* Background Pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(245, 158, 11, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(6, 182, 212, 0.04) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem;
+        }
+
+        /* Header Hero */
+        .hero {
+            min-height: 50vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 4rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg at 50% 50%, transparent 0deg, var(--accent-subtle) 60deg, transparent 120deg);
+            animation: rotate 30s linear infinite;
+            opacity: 0.5;
+        }
+
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--accent-subtle);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 50%, var(--accent-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            animation: fadeInUp 0.6s ease-out 0.1s both;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            animation: fadeInUp 0.6s ease-out 0.3s both;
+        }
+
+        .hero-stat {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem 2rem;
+            min-width: 140px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-stat::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--purple));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .hero-stat:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px -20px var(--accent-glow);
+        }
+
+        .hero-stat:hover::before {
+            opacity: 1;
+        }
+
+        .hero-stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1;
+        }
+
+        .hero-stat-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Navigation */
+        .nav-container {
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+            margin-bottom: 3rem;
+        }
+
+        .nav-glass {
+            background: rgba(18, 18, 26, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1rem;
+        }
+
+        .nav-list {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .nav-list a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-list a:hover {
+            background: var(--accent-subtle);
+            color: var(--accent);
+        }
+
+        .nav-list a i {
+            font-size: 0.75rem;
+        }
+
+        /* Sections */
+        section {
+            margin-bottom: 4rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            position: relative;
+        }
+
+        .section-icon::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            background: inherit;
+            filter: blur(20px);
+            opacity: 0.4;
+            z-index: -1;
+        }
+
+        .section-icon.legal { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .section-icon.clients { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
+        .section-icon.time { background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; }
+        .section-icon.finance { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .section-icon.operations { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
+        .section-icon.admin { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .section-icon.conflicts { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .section-icon.auth { background: linear-gradient(135deg, #71717a, #52525b); color: white; }
+        .section-icon.dashboard { background: linear-gradient(135deg, #f59e0b, #f97316); color: white; }
+        .section-icon.signatures { background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; }
+
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .section-count {
+            background: var(--accent-subtle);
+            color: var(--accent);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.75rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .card:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-card-hover);
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 25px 50px -20px rgba(0, 0, 0, 0.5);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-title i {
+            color: var(--accent);
+        }
+
+        .card-badge {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: var(--bg-dark);
+            padding: 0.35rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .card-badge.roles {
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            background: var(--bg-elevated);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .info-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.35rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-label i {
+            color: var(--accent);
+            font-size: 0.65rem;
+        }
+
+        .info-value {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .info-value code {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--accent-subtle);
+            color: var(--accent);
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+
+        /* Roles Tags */
+        .roles-container {
+            margin-top: 1.25rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .roles-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .roles-label i {
+            color: var(--purple);
+        }
+
+        .roles-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .role-tag {
+            background: linear-gradient(135deg, var(--bg-elevated), var(--bg-card));
+            border: 1px solid var(--border);
+            padding: 0.4rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .role-tag:hover {
+            border-color: var(--purple);
+            color: var(--purple);
+            transform: scale(1.05);
+        }
+
+        /* Tables */
+        .table-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--bg-elevated);
+            padding: 1rem 1.5rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: var(--bg-card-hover);
+        }
+
+        td code {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--accent-subtle);
+            color: var(--accent);
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+
+        /* Group Section */
+        .group-section {
+            margin-bottom: 3rem;
+        }
+
+        .group-header {
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-elevated));
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .group-header::before {
+            content: '';
+            position: absolute;
+            right: -50px;
+            top: -50px;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, var(--accent-subtle), transparent);
+            opacity: 0.5;
+        }
+
+        .group-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            color: white;
+            position: relative;
+            z-index: 1;
+        }
+
+        .group-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        .group-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .group-count {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: var(--bg-dark);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Reorganization Section */
+        .reorg-section {
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-elevated));
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-top: 2rem;
+        }
+
+        .reorg-section h2 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .reorg-section h2 i {
+            color: var(--accent);
+        }
+
+        .problems-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .problem-card {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .problem-card:hover {
+            border-color: var(--danger);
+            transform: translateX(4px);
+        }
+
+        .problem-number {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .problem-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .problem-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Sidebar Preview */
+        .sidebar-preview {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            white-space: pre;
+            overflow-x: auto;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            margin: 1.5rem 0;
+        }
+
+        .sidebar-preview .section-title {
+            color: var(--accent);
+            font-weight: 700;
+            margin-top: 0.5rem;
+        }
+
+        .sidebar-preview .item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.35rem 0;
+        }
+
+        .sidebar-preview .badge {
+            background: var(--accent-subtle);
+            color: var(--accent);
+            padding: 0.1rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            margin-left: auto;
+        }
+
+        /* Comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .comparison-card {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .comparison-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        .comparison-card.before::before {
+            background: linear-gradient(90deg, var(--danger), #dc2626);
+        }
+
+        .comparison-card.after::before {
+            background: linear-gradient(90deg, var(--success), #059669);
+        }
+
+        .comparison-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .comparison-card.before .comparison-title { color: var(--danger); }
+        .comparison-card.after .comparison-title { color: var(--success); }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.85rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+        }
+
+        .metric-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .comparison-card.before .metric-value { color: var(--danger); }
+        .comparison-card.after .metric-value { color: var(--success); }
+
+        /* Tabs Preview */
+        .tabs-preview {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: var(--bg-dark);
+            border-color: transparent;
+            box-shadow: 0 10px 30px -10px var(--accent-glow);
+        }
+
+        .tab-arrow {
+            color: var(--text-muted);
+        }
+
+        /* Checklist */
+        .checklist {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .checklist li {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            transition: all 0.3s;
+        }
+
+        .checklist li:hover {
+            border-color: var(--accent);
+            transform: translateX(4px);
+        }
+
+        .checklist-number {
+            width: 28px;
+            height: 28px;
+            background: var(--accent-subtle);
+            color: var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .checklist-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--border);
+            margin-top: 4rem;
+            background: var(--bg-card);
+        }
+
+        footer p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        footer code {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-elevated);
+            color: var(--accent);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem 2rem;
+            }
+
+            .hero {
+                min-height: auto;
+                padding: 3rem 1rem;
+            }
+
+            .hero-stats {
+                gap: 1rem;
+            }
+
+            .hero-stat {
+                padding: 1rem 1.25rem;
+                min-width: 100px;
+            }
+
+            .hero-stat-value {
+                font-size: 1.75rem;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .group-header {
+                flex-wrap: wrap;
+            }
+
+            .section-count {
+                margin-left: 0;
+                margin-top: 0.5rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-elevated);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--border-hover);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-book-open"></i>
+                    Documentación Técnica
+                </div>
+                <h1>ERP Bufetes de Abogados</h1>
+                <p>Una guía completa de la estructura de páginas, roles y permisos del sistema</p>
+                
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">29</div>
+                        <div class="hero-stat-label">Páginas</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">10</div>
+                        <div class="hero-stat-label">Grupos</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">9</div>
+                        <div class="hero-stat-label">Roles</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">27</div>
+                        <div class="hero-stat-label">Rutas</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-container">
+            <nav class="nav-glass">
+                <ul class="nav-list">
+                    <li><a href="#roles"><i class="fas fa-shield-alt"></i> Roles</a></li>
+                    <li><a href="#auth"><i class="fas fa-key"></i> Auth</a></li>
+                    <li><a href="#dashboard"><i class="fas fa-th-large"></i> Dashboard</a></li>
+                    <li><a href="#legal"><i class="fas fa-gavel"></i> Legal</a></li>
+                    <li><a href="#clients"><i class="fas fa-users"></i> Clientes</a></li>
+                    <li><a href="#time"><i class="fas fa-clock"></i> Tiempo</a></li>
+                    <li><a href="#finance"><i class="fas fa-coins"></i> Finanzas</a></li>
+                    <li><a href="#ops"><i class="fas fa-cogs"></i> Operaciones</a></li>
+                    <li><a href="#admin"><i class="fas fa-user-shield"></i> Admin</a></li>
+                    <li><a href="#conflicts"><i class="fas fa-exclamation-triangle"></i> Conflictos</a></li>
+                    <li><a href="#signatures"><i class="fas fa-signature"></i> Firmas</a></li>
+                    <li><a href="#reorg"><i class="fas fa-random"></i> Reorganización</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Roles Section -->
+        <section id="roles">
+            <div class="section-header">
+                <div class="section-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h2 class="section-title">Sistema de Roles</h2>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rol</th>
+                            <th>Clave</th>
+                            <th>Descripción</th>
+                            <th>Permisos Clave</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Super Administrador</strong></td>
+                            <td><code>super_admin</code></td>
+                            <td>Acceso total al sistema</td>
+                            <td>Todo habilitado</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Socio/Director</strong></td>
+                            <td><code>socio</code></td>
+                            <td>Máxima autoridad del bufete</td>
+                            <td>Expedientes, clientes, reportes full</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Abogado Senior</strong></td>
+                            <td><code>abogado_senior</code></td>
+                            <td>Casos complejos y supervisión</td>
+                            <td>Expedientes supervised, propios</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Abogado Junior</strong></td>
+                            <td><code>abogado_junior</code></td>
+                            <td>Casos bajo supervisión</td>
+                            <td>Solo propios</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Paralegal</strong></td>
+                            <td><code>paralegal</code></td>
+                            <td>Apoyo legal y documentos</td>
+                            <td>Support en expedientes</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Secretario/a</strong></td>
+                            <td><code>secretario</code></td>
+                            <td>Gestión documental y agenda</td>
+                            <td>Vista general</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Administrador</strong></td>
+                            <td><code>administrador</code></td>
+                            <td>Gestión operativa y RRHH</td>
+                            <td>Usuarios, config limitada</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Contador</strong></td>
+                            <td><code>contador</code></td>
+                            <td>Contabilidad y finanzas</td>
+                            <td>Contabilidad, facturación full</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Recepcionista</strong></td>
+                            <td><code>recepcionista</code></td>
+                            <td>Atención y citas</td>
+                            <td>Clientes basic, agenda limitada</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Auth Section -->
+        <section id="auth" class="group-section">
+            <div class="group-header" style="background: linear-gradient(135deg, #1f1f23, #2a2a32);">
+                <div class="group-icon auth"><i class="fas fa-key"></i></div>
+                <div class="group-title">1. Autenticación</div>
+                <div class="group-count">2 páginas</div>
+            </div>
+            <p class="group-desc" style="margin-bottom: 1.5rem; color: var(--text-secondary);">Páginas de acceso público para la autenticación de usuarios.</p>
+            
+            <div class="card-grid">
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-sign-in-alt"></i> Login.tsx</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label"><i class="fas fa-route"></i> Ruta</div>
+                            <div class="info-value"><code>/login</code></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label"><i class="fas fa-lock-open"></i> Acceso</div>
+                            <div class="info-value">Público</div>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">Página principal de inicio de sesión. Permite autenticarse con email/contraseña o proveedores externos (Google).</p>
+                </div>
+
+                <div class="card fade-in delay-1">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-user-plus"></i> Register.tsx</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label"><i class="fas fa-route"></i> Ruta</div>
+                            <div class="info-value"><code>/register</code></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label"><i class="fas fa-lock-open"></i> Acceso</div>
+                            <div class="info-value">Público</div>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">Página de registro de nuevos usuarios. Puede incluir verificación de email y activación de cuenta.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="group-section">
+            <div class="group-header" style="background: linear-gradient(135deg, #2a1f18, #3d2a1f);">
+                <div class="group-icon dashboard"><i class="fas fa-th-large"></i></div>
+                <div class="group-title">2. Principal</div>
+                <div class="group-count">1 página</div>
+            </div>
+            
+            <div class="card fade-in">
+                <div class="card-header">
+                    <span class="card-title"><i class="fas fa-chart-pie"></i> Dashboard.tsx</span>
+                    <span class="card-badge">Todos los roles</span>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-route"></i> Ruta</div>
+                        <div class="info-value"><code>/dashboard</code></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label"><i class="fas fa-columns"></i> Sidebar</div>
+                        <div class="info-value">✅ Visible</div>
+                    </div>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">Panel principal con métricas clave, gráficos de rendimiento, tareas pendientes, eventos del calendario y notificaciones.</p>
+            </div>
+        </section>
+
+        <!-- Legal Section -->
+        <section id="legal" class="group-section">
+            <div class="group-header">
+                <div class="group-icon legal"><i class="fas fa-gavel"></i></div>
+                <div class="group-title">3. Gestión Legal</div>
+                <div class="group-count">5 páginas</div>
+            </div>
+            <p class="group-desc" style="margin-bottom: 1.5rem; color: var(--text-secondary);">Módulos relacionados con la gestión de casos legales, documentos y procedimientos.</p>
+            
+            <div class="card-grid">
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-folder-open"></i> Expedientes.tsx</span>
+                        <span class="card-badge">Badge: 6</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/expedientes</code></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Permiso</div>
+                            <div class="info-value">expedientes</div>
+                        </div>
+                    </div>
+                    <div class="roles-container">
+                        <div class="roles-label"><i class="fas fa-users"></i> Roles con acceso</div>
+                        <div class="roles-list">
+                            <span class="role-tag">super_admin</span>
+                            <span class="role-tag">socio</span>
+                            <span class="role-tag">abogado_senior</span>
+                            <span class="role-tag">abogado_junior</span>
+                            <span class="role-tag">paralegal</span>
+                            <span class="role-tag">secretario</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in delay-1">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-folder"></i> ExpedienteDetail.tsx</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/expedientes/:id</code></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Sidebar</div>
+                            <div class="info-value">No visible</div>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">Vista detallada con datos del cliente, documentos, timeline, notas, audiencias, tareas y facturación.</p>
+                </div>
+
+                <div class="card fade-in delay-2">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-balance-scale"></i> Audiencias.tsx</span>
+                        <span class="card-badge">Badge: 4</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/audiencias</code></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Permiso</div>
+                            <div class="info-value">agenda</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in delay-3">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-book"></i> Biblioteca.tsx</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/biblioteca</code></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Permiso</div>
+                            <div class="info-value">biblioteca: true</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in delay-4">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-hourglass-half"></i> Prescripciones.tsx</span>
+                        <span class="card-badge">Badge: 4</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/prescripciones</code></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Permiso</div>
+                            <div class="info-value">expedientes</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Clients Section -->
+        <section id="clients" class="group-section">
+            <div class="group-header" style="background: linear-gradient(135deg, #2e1f3d, #3d2a4d);">
+                <div class="group-icon clients"><i class="fas fa-users"></i></div>
+                <div class="group-title">4. Clientes</div>
+                <div class="group-count">3 páginas</div>
+            </div>
+            
+            <div class="card-grid">
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-user-friends"></i> Clientes.tsx</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/clientes</code></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Permiso</div>
+                            <div class="info-value">clientes</div>
+                        </div>
+                    </div>
+                    <div class="roles-container">
+                        <div class="roles-label"><i class="fas fa-users"></i> Roles</div>
+                        <div class="roles-list">
+                            <span class="role-tag">super_admin</span>
+                            <span class="role-tag">socio</span>
+                            <span class="role-tag">abogado_senior</span>
+                            <span class="role-tag">abogado_junior</span>
+                            <span class="role-tag">paralegal</span>
+                            <span class="role-tag">secretario</span>
+                            <span class="role-tag">administrador</span>
+                            <span class="role-tag">recepcionista</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in delay-1">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-user"></i> ClienteDetail.tsx</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/clientes/:id</code></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Sidebar</div>
+                            <div class="info-value">No visible</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in delay-2">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-globe"></i> PortalCliente.tsx</span>
+                        <span class="card-badge roles">Admin only</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/portal-cliente</code></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Time Section -->
+        <section id="time" class="group-section">
+            <div class="group-header" style="background: linear-gradient(135deg, #0f2d3d, #153d4d);">
+                <div class="group-icon time"><i class="fas fa-clock"></i></div>
+                <div class="group-title">5. Tiempo y Agenda</div>
+                <div class="group-count">3 páginas</div>
+            </div>
+            
+            <div class="card-grid">
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-calendar-alt"></i> Calendario.tsx</span>
+                        <span class="card-badge">Badge: 8</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/calendario</code></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in delay-1">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-stopwatch"></i> Tiempo.tsx</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/tiempo</code></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in delay-2">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-tasks"></i> Tareas.tsx</span>
+                        <span class="card-badge">Badge: 3</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/tareas</code></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Finance Section -->
+        <section id="finance" class="group-section">
+            <div class="group-header" style="background: linear-gradient(135deg, #0f2d1f, #153d28);">
+                <div class="group-icon finance"><i class="fas fa-coins"></i></div>
+                <div class="group-title">6. Finanzas</div>
+                <div class="group-count">4 páginas</div>
+            </div>
+            
+            <div class="card-grid">
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-credit-card"></i> Facturacion.tsx</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/facturacion</code></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in delay-1">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-calculator"></i> Contabilidad.tsx</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/contabilidad</code></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in delay-2">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-hand-holding-usd"></i> Cobranza.tsx</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/cobranza</code></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in delay-3">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-receipt"></i> Gastos.tsx</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/gastos</code></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Operations Section -->
+        <section id="ops" class="group-section">
+            <div class="group-header" style="background: linear-gradient(135deg, #2d1f2d, #3d283d);">
+                <div class="group-icon operations"><i class="fas fa-cogs"></i></div>
+                <div class="group-title">7. Operaciones</div>
+                <div class="group-count">4 páginas</div>
+            </div>
+            
+            <div class="card-grid">
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-comments"></i> Mensajes.tsx</span>
+                        <span class="card-badge">Badge: 3</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/mensajes</code></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in delay-1">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-bell"></i> Notificaciones.tsx</span>
+                        <span class="card-badge">Badge: 5</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/notificaciones</code></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in delay-2">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-history"></i> Bitacora.tsx</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/bitacora</code></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in delay-3">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-building"></i> Proveedores.tsx</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/proveedores</code></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Section -->
+        <section id="admin" class="group-section">
+            <div class="group-header" style="background: linear-gradient(135deg, #1f2a3d, #28374d);">
+                <div class="group-icon admin"><i class="fas fa-user-shield"></i></div>
+                <div class="group-title">8. Administración</div>
+                <div class="group-count">3 páginas</div>
+            </div>
+            
+            <div class="card-grid">
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-shield-alt"></i> Admin.tsx</span>
+                        <span class="card-badge roles">Solo SA</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/admin</code></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in delay-1">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-file-alt"></i> Plantillas.tsx</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/plantillas</code></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in delay-2">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-chart-bar"></i> Informes.tsx</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/informes</code></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conflicts Section -->
+        <section id="conflicts" class="group-section">
+            <div class="group-header" style="background: linear-gradient(135deg, #3d1f1f, #4d2828);">
+                <div class="group-icon conflicts"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="group-title">9. Conflictos de Interés</div>
+                <div class="group-count">3 páginas</div>
+            </div>
+            <p class="group-desc" style="margin-bottom: 1.5rem; color: var(--text-secondary);">Sistema de gestión y análisis de conflictos de interés.</p>
+            
+            <div class="card-grid">
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-exclamation-circle"></i> Conflictos.tsx</span>
+                        <span class="card-badge">Badge: 3</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/conflictos</code></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in delay-1">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-search-plus"></i> AnalisisConflictos.tsx</span>
+                        <span class="card-badge">Badge: 5</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/conflictos/analisis</code></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in delay-2">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-users-slash"></i> ConflictosPartesContrarias.tsx</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Ruta</div>
+                            <div class="info-value"><code>/conflictos/partes</code></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Signatures Section -->
+        <section id="signatures" class="group-section">
+            <div class="group-header" style="background: linear-gradient(135deg, #0f2d2a, #153d38);">
+                <div class="group-icon signatures"><i class="fas fa-signature"></i></div>
+                <div class="group-title">10. Firmas Digitales</div>
+                <div class="group-count">1 página</div>
+            </div>
+            
+            <div class="card fade-in">
+                <div class="card-header">
+                    <span class="card-title"><i class="fas fa-file-signature"></i> SignatureManagement.tsx</span>
+                    <span class="card-badge">Badge: 2</span>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Ruta</div>
+                        <div class="info-value"><code>/firmas</code></div>
+                    </div>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">Sistema de gestión de firmas digitales. Certificados, plantillas, validación y auditoría.</p>
+            </div>
+        </section>
+
+        <!-- Reorganization Section -->
+        <section id="reorg">
+            <div class="reorg-section">
+                <h2><i class="fas fa-random"></i> Propuesta de Reorganización</h2>
+                
+                <h3 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1.25rem;">Problemas Identificados</h3>
+                <div class="problems-grid">
+                    <div class="problem-card">
+                        <div class="problem-number">1</div>
+                        <div class="problem-title">Conflictos fragmentado</div>
+                        <div class="problem-desc">3 páginas separadas para un mismo módulo lógico</div>
+                    </div>
+                    <div class="problem-card">
+                        <div class="problem-number">2</div>
+                        <div class="problem-title">Sidebar sobrecargado</div>
+                        <div class="problem-desc">20+ items en lista plana sin группировки</div>
+                    </div>
+                    <div class="problem-card">
+                        <div class="problem-number">3</div>
+                        <div class="problem-title">Módulos dispersos</div>
+                        <div class="problem-desc">Funciones relacionadas separadas visualmente</div>
+                    </div>
+                </div>
+
+                <h3 style="color: var(--text-primary); margin: 2rem 0 1rem; font-size: 1.25rem;">Solución: Unificar Conflictos</h3>
+                <div class="tabs-preview">
+                    <span class="tab active"><i class="fas fa-list"></i> Lista</span>
+                    <span class="tab-arrow">→</span>
+                    <span class="tab"><i class="fas fa-search"></i> Análisis</span>
+                    <span class="tab-arrow">→</span>
+                    <span class="tab"><i class="fas fa-users"></i> Partes Contrarias</span>
+                </div>
+                <p style="color: var(--success); font-weight: 500;">Resultado: -2 páginas (29 → 27)</p>
+
+                <h3 style="color: var(--text-primary); margin: 2rem 0 1rem; font-size: 1.25rem;">Nueva Estructura del Sidebar</h3>
+                <div class="sidebar-preview">
+<div class="section-title">🏠 INICIO</div>
+  <div class="item">  📊 Dashboard</div>
+
+<div class="section-title">⚖️ LEGAL</div>
+  <div class="item">  📁 Expedientes</div>
+  <div class="item">  ⚠️ Conflictos <span class="badge">3</span></div>
+  <div class="item">  ⚖️ Audiencias</div>
+  <div class="item">  📚 Biblioteca</div>
+  <div class="item">  ⏰ Prescripciones</div>
+
+<div class="section-title">👥 CLIENTES</div>
+  <div class="item">  👥 Clientes</div>
+  <div class="item">  🌐 Portal Cliente</div>
+
+<div class="section-title">⏱️ TIEMPO</div>
+  <div class="item">  📅 Calendario <span class="badge">8</span></div>
+  <div class="item">  ⏱️ Tiempo</div>
+  <div class="item">  ✅ Tareas <span class="badge">3</span></div>
+
+<div class="section-title">💰 FINANZAS</div>
+  <div class="item">  💳 Facturación</div>
+  <div class="item">  🧮 Contabilidad</div>
+  <div class="item">  💵 Cobranza</div>
+  <div class="item">  🧾 Gastos</div>
+
+<div class="section-title">⚙️ OPERACIONES</div>
+  <div class="item">  💬 Mensajes <span class="badge">3</span></div>
+  <div class="item">  🔔 Notificaciones <span class="badge">5</span></div>
+  <div class="item">  🏢 Proveedores</div>
+
+<div class="section-title">🛡️ ADMINISTRACIÓN</div>
+  <div class="item">  🛡️ Admin <span class="badge">SA</span></div>
+  <div class="item">  📊 Informes</div>
+  <div class="item">  📄 Plantillas</div>
+  <div class="item">  ✍️ Firmas <span class="badge">2</span></div></div>
+
+                <h3 style="color: var(--text-primary); margin: 2rem 0 1rem; font-size: 1.25rem;">Comparación</h3>
+                <div class="comparison-grid">
+                    <div class="comparison-card before">
+                        <div class="comparison-title"><i class="fas fa-times-circle"></i> Antes</div>
+                        <div class="metric">
+                            <span class="metric-label">Total páginas</span>
+                            <span class="metric-value">29</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Items en sidebar</span>
+                            <span class="metric-value">20-23</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Secciones</span>
+                            <span class="metric-value">1 (plana)</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Conflictos</span>
+                            <span class="metric-value">3 páginas</span>
+                        </div>
+                    </div>
+                    <div class="comparison-card after">
+                        <div class="comparison-title"><i class="fas fa-check-circle"></i> Después</div>
+                        <div class="metric">
+                            <span class="metric-label">Total páginas</span>
+                            <span class="metric-value">27</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Items por sección</span>
+                            <span class="metric-value">3-5</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Secciones</span>
+                            <span class="metric-value">7 grups</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Conflictos</span>
+                            <span class="metric-value">1 página</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="color: var(--text-primary); margin: 2rem 0 1rem; font-size: 1.25rem;">Plan de Implementación</h3>
+                <ul class="checklist">
+                    <li>
+                        <span class="checklist-number">1</span>
+                        <span class="checklist-text">Reestructurar Sidebar con secciones y headers</span>
+                    </li>
+                    <li>
+                        <span class="checklist-number">2</span>
+                        <span class="checklist-text">Implementar menú expandible para Conflictos</span>
+                    </li>
+                    <li>
+                        <span class="checklist-number">3</span>
+                        <span class="checklist-text">Unificar Conflictos.tsx con 3 tabs</span>
+                    </li>
+                    <li>
+                        <span class="checklist-number">4</span>
+                        <span class="checklist-text">Eliminar archivos duplicados</span>
+                    </li>
+                    <li>
+                        <span class="checklist-number">5</span>
+                        <span class="checklist-text">Testing de roles, navegación y deep links</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>📄 Documentación técnica del ERP para Bufetes de Abogados</p>
+            <p style="margin-top: 1rem;">Archivos clave: <code>src/types/roles.ts</code> • <code>src/App.tsx</code> • <code>src/components/layout/Sidebar.tsx</code></p>
+        </footer>
+    </div>
+
+    <script>
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.card, .problem-card, .comparison-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('.nav-list a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

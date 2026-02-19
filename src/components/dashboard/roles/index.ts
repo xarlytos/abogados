@@ -1,0 +1,9 @@
+export { SuperAdminDashboard } from './SuperAdminDashboard';
+export { SocioDashboard } from './SocioDashboard';
+export { AbogadoSeniorDashboard } from './AbogadoSeniorDashboard';
+export { AbogadoJuniorDashboard } from './AbogadoJuniorDashboard';
+export { ParalegalDashboard } from './ParalegalDashboard';
+export { SecretarioDashboard } from './SecretarioDashboard';
+export { AdministradorDashboard } from './AdministradorDashboard';
+export { ContadorDashboard } from './ContadorDashboard';
+export { RecepcionistaDashboard } from './RecepcionistaDashboard';

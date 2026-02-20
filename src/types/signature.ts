@@ -1,11 +1,22 @@
 // ============================================
-// TIPOS PARA FIRMA ELECTRÓNICA
+// TIPOS PARA FIRMA ELECTRÓNICA AVANZADA
 // ============================================
 
 import type { UserRole } from './roles';
 
-// Tipos de firma soportados
-export type SignatureType = 'simple' | 'advanced' | 'qualified' | 'biometric' | 'certificate';
+// Tipos de firma soportados (ampliados con FNMT y DNIe)
+export type SignatureType = 
+  | 'simple' 
+  | 'advanced' 
+  | 'qualified' 
+  | 'biometric' 
+  | 'certificate'
+  | 'fnmt'           // Certificado FNMT
+  | 'dnie'           // DNI Electrónico
+  | 'cloud';         // Firma en la nube
+
+// Tipos de certificado específicos
+export type CertificateType = 'fnmt' | 'dnie' | 'cam' | 'other';
 
 // Tipos de flujo de firma
 export type SignatureWorkflow = 'parallel' | 'sequential';
@@ -24,6 +35,21 @@ export type SignerRole = 'cliente' | 'abogado' | 'socio' | 'testigo' | 'administ
 // ============================================
 
 /**
+ * Sello de tiempo (Timestamp) - RFC 3161
+ */
+export interface Timestamp {
+  id: string;
+  authority: string;           // Autoridad de sellado de tiempo (TSA)
+  timestamp: string;           // Fecha/hora del sello
+  serialNumber: string;        // Número de serie del sello
+  hashAlgorithm: string;       // Algoritmo de hash utilizado
+  hashedMessage: string;       // Hash del documento sellado
+  token: string;               // Token del sello de tiempo
+  accuracy?: number;           // Precisión en milisegundos
+  ordering?: boolean;          // Si garantiza ordenación
+}
+
+/**
  * Representa un firmante en el sistema de firma
  */
 export interface Signer {
@@ -36,6 +62,8 @@ export interface Signer {
   signedAt?: string;
   rejectedReason?: string;
   avatar?: string;
+  requiredSignatureType?: SignatureType;  // Tipo de firma requerido para este firmante
+  certificateInfo?: CertificateInfo;      // Info del certificado utilizado
 }
 
 /**
@@ -52,11 +80,16 @@ export interface Signature {
   userAgent?: string;
   certificateInfo?: CertificateInfo;
   biometricData?: BiometricData;
-  signatureImage?: string; // Base64 de la firma dibujada
+  signatureImage?: string;      // Base64 de la firma dibujada
+  timestamp?: Timestamp;        // Sello de tiempo RFC 3161
+  signatureValue?: string;      // Valor de la firma digital
+  ocspResponse?: string;        // Respuesta OCSP de validación
+  crlChecked?: boolean;         // Si se verificó lista de revocación
+  crlCheckDate?: string;        // Fecha de verificación CRL
 }
 
 /**
- * Información del certificado digital
+ * Información del certificado digital (ampliada)
  */
 export interface CertificateInfo {
   issuer: string;
@@ -65,6 +98,15 @@ export interface CertificateInfo {
   validFrom: string;
   validTo: string;
   fingerprint: string;
+  fingerprintAlgorithm: string;   // SHA-256, SHA-1, etc.
+  certificateType: CertificateType;
+  keyUsage: string[];             // Usos de la clave
+  extendedKeyUsage?: string[];    // Usos extendidos
+  subjectAlternativeName?: string[]; // Nombres alternativos (emails, etc.)
+  authorityKeyIdentifier?: string;   // Identificador de la autoridad
+  subjectKeyIdentifier?: string;     // Identificador del sujeto
+  crlDistributionPoint?: string;     // Punto de distribución CRL
+  ocspUrl?: string;                  // URL del responder OCSP
 }
 
 /**
@@ -78,7 +120,19 @@ export interface BiometricData {
 }
 
 /**
- * Solicitud de firma completa
+ * Configuración de firma múltiple secuencial
+ */
+export interface SequentialSignatureConfig {
+  enabled: boolean;
+  notifyNextSigner: boolean;           // Notificar al siguiente firmante
+  waitTimeBetweenSigners?: number;     // Tiempo de espera entre firmantes (minutos)
+  allowSkipping?: boolean;             // Permitir saltar orden
+  requireAllSigners: boolean;          // Requerir todos los firmantes
+  expirationPerSigner?: number;        // Expiración por firmante (horas)
+}
+
+/**
+ * Solicitud de firma completa (ampliada)
  */
 export interface SignatureRequest {
   id: string;
@@ -86,9 +140,11 @@ export interface SignatureRequest {
   documentName: string;
   documentUrl?: string;
   documentType: string;
+  documentHash?: string;               // Hash del documento para integridad
   status: SignatureRequestStatus;
   signatureType: SignatureType;
   workflow: SignatureWorkflow;
+  sequentialConfig?: SequentialSignatureConfig;  // Config específica para secuencial
   signers: Signer[];
   signatures: Signature[];
   message?: string;
@@ -98,6 +154,8 @@ export interface SignatureRequest {
   completedAt?: string;
   reminderDays: number[];
   autoReminders: boolean;
+  enableTimestamp: boolean;            // Habilitar sellado de tiempo
+  timestampAuthority?: string;         // Autoridad de sellado preferida
 }
 
 /**
@@ -112,6 +170,8 @@ export interface SignedDocument {
   signatures: Signature[];
   auditTrailUrl?: string;
   certificateUrl?: string;
+  timestampTokenUrl?: string;          // URL del token de sellado de tiempo
+  documentWithSignaturesUrl?: string;  // PDF con firmas visibles
 }
 
 /**
@@ -130,16 +190,20 @@ export interface SignatureField {
 }
 
 /**
- * Configuración de firma por defecto
+ * Configuración de firma por defecto (ampliada)
  */
 export interface SignatureConfig {
   defaultType: SignatureType;
   defaultWorkflow: SignatureWorkflow;
   allowBiometric: boolean;
   allowCertificate: boolean;
+  allowFNMT: boolean;                  // Permitir certificados FNMT
+  allowDNIe: boolean;                  // Permitir DNIe
   requireAuthentication: boolean;
   reminderDays: number[];
   expirationDays: number;
+  enableTimestampByDefault: boolean;   // Sellar por defecto
+  defaultTimestampAuthority?: string;  // Autoridad de sellado por defecto
 }
 
 // ============================================
@@ -156,7 +220,9 @@ export interface SignatureWidgetProps {
   signers?: Partial<Signer>[];
   signatureType?: SignatureType;
   workflow?: SignatureWorkflow;
+  sequentialConfig?: SequentialSignatureConfig;
   message?: string;
+  enableTimestamp?: boolean;
   isOpen: boolean;
   onClose: () => void;
   onComplete: (result: SignedDocument | SignatureRequest) => void;
@@ -175,6 +241,16 @@ export interface SignatureTypeSelectorProps {
 }
 
 /**
+ * Props para el selector de certificado
+ */
+export interface CertificateSelectorProps {
+  value?: CertificateType;
+  onChange: (type: CertificateType, info?: CertificateInfo) => void;
+  allowedTypes?: CertificateType[];
+  disabled?: boolean;
+}
+
+/**
  * Props para la lista de firmantes
  */
 export interface SignerListProps {
@@ -186,6 +262,7 @@ export interface SignerListProps {
   onReorderSigners?: (signers: Signer[]) => void;
   readOnly?: boolean;
   maxSigners?: number;
+  allowSignatureTypePerSigner?: boolean;  // Permitir tipo de firma por firmante
 }
 
 /**
@@ -212,6 +289,7 @@ export interface SignatureModalProps {
   documentName: string;
   documentUrl?: string;
   requestId?: string;
+  enableTimestamp?: boolean;
   onComplete: (result: SignedDocument | SignatureRequest) => void;
 }
 
@@ -226,10 +304,16 @@ export interface CreateSignatureRequestData {
   documentId: string;
   documentName: string;
   documentUrl?: string;
+  documentHash?: string;
   signers: Partial<Signer>[];
   signatureType: SignatureType;
   workflow: SignatureWorkflow;
+  sequentialConfig?: SequentialSignatureConfig;
   message?: string;
+  expiresAt?: string;
+  autoReminders?: boolean;
+  enableTimestamp?: boolean;
+  timestampAuthority?: string;
 }
 
 /**
@@ -237,8 +321,20 @@ export interface CreateSignatureRequestData {
  */
 export interface SignDocumentData {
   type: SignatureType;
-  signatureImage?: string;
-  certificateId?: string;
+  signatureImage?: string;           // Base64 para firma biométrica/simple
+  certificateData?: string;          // Datos del certificado
+  certificateType?: CertificateType; // Tipo de certificado
+  biometricData?: {
+    pressurePoints: number;
+    speed: number;
+    acceleration: number;
+    deviceType: string;
+  };
+  ipAddress?: string;
+  userAgent?: string;
+  timestamp?: Timestamp;             // Sello de tiempo
+  signatureValue?: string;           // Valor de firma digital
+  ocspResponse?: string;             // Respuesta OCSP
 }
 
 // ============================================
@@ -253,6 +349,9 @@ export interface SignaturePermissions {
   allowedTypes: SignatureType[];
   maxSignersPerRequest: number;
   allowExternalSigners: boolean;
+  allowTimestamp: boolean;           // Permiso para usar sellado de tiempo
+  allowDNIe: boolean;                // Permiso para usar DNIe
+  allowFNMT: boolean;                // Permiso para usar FNMT
 }
 
 // Permisos de firma por rol
@@ -262,36 +361,48 @@ export const SIGNATURE_PERMISSIONS: Record<UserRole, SignaturePermissions> = {
     canRequestSignatures: true,
     canManageCertificates: true,
     canDeleteRequests: true,
-    allowedTypes: ['simple', 'advanced', 'qualified', 'biometric', 'certificate'],
+    allowedTypes: ['simple', 'advanced', 'qualified', 'biometric', 'certificate', 'fnmt', 'dnie', 'cloud'],
     maxSignersPerRequest: 50,
     allowExternalSigners: true,
+    allowTimestamp: true,
+    allowDNIe: true,
+    allowFNMT: true,
   },
   socio: {
     canSign: true,
     canRequestSignatures: true,
     canManageCertificates: true,
     canDeleteRequests: true,
-    allowedTypes: ['simple', 'advanced', 'qualified', 'biometric', 'certificate'],
+    allowedTypes: ['simple', 'advanced', 'qualified', 'biometric', 'certificate', 'fnmt', 'dnie', 'cloud'],
     maxSignersPerRequest: 50,
     allowExternalSigners: true,
+    allowTimestamp: true,
+    allowDNIe: true,
+    allowFNMT: true,
   },
   abogado_senior: {
     canSign: true,
     canRequestSignatures: true,
     canManageCertificates: false,
     canDeleteRequests: false,
-    allowedTypes: ['simple', 'advanced', 'biometric', 'certificate'],
+    allowedTypes: ['simple', 'advanced', 'biometric', 'certificate', 'fnmt', 'dnie'],
     maxSignersPerRequest: 20,
     allowExternalSigners: true,
+    allowTimestamp: true,
+    allowDNIe: true,
+    allowFNMT: true,
   },
   abogado_junior: {
     canSign: true,
-    canRequestSignatures: true, // Limitado
-    canManageCertificates: false,
-    canDeleteRequests: false,
-    allowedTypes: ['simple', 'advanced', 'biometric'],
+    canRequestSignatures: true,
+    allowedTypes: ['simple', 'advanced', 'biometric', 'certificate'],
     maxSignersPerRequest: 10,
     allowExternalSigners: true,
+    canManageCertificates: false,
+    canDeleteRequests: false,
+    allowTimestamp: false,
+    allowDNIe: false,
+    allowFNMT: false,
   },
   paralegal: {
     canSign: false,
@@ -301,33 +412,45 @@ export const SIGNATURE_PERMISSIONS: Record<UserRole, SignaturePermissions> = {
     allowedTypes: [],
     maxSignersPerRequest: 0,
     allowExternalSigners: false,
+    allowTimestamp: false,
+    allowDNIe: false,
+    allowFNMT: false,
   },
   secretario: {
     canSign: false,
-    canRequestSignatures: true, // Solo enviar solicitudes
+    canRequestSignatures: true,
     canManageCertificates: false,
     canDeleteRequests: false,
     allowedTypes: ['simple'],
     maxSignersPerRequest: 5,
     allowExternalSigners: true,
+    allowTimestamp: false,
+    allowDNIe: false,
+    allowFNMT: false,
   },
   administrador: {
     canSign: true,
     canRequestSignatures: true,
     canManageCertificates: true,
     canDeleteRequests: true,
-    allowedTypes: ['simple', 'advanced', 'qualified', 'biometric', 'certificate'],
+    allowedTypes: ['simple', 'advanced', 'qualified', 'biometric', 'certificate', 'fnmt', 'dnie', 'cloud'],
     maxSignersPerRequest: 30,
     allowExternalSigners: true,
+    allowTimestamp: true,
+    allowDNIe: true,
+    allowFNMT: true,
   },
   contador: {
     canSign: true,
-    canRequestSignatures: true, // Solo docs financieros
+    canRequestSignatures: true,
     canManageCertificates: false,
     canDeleteRequests: false,
-    allowedTypes: ['simple', 'advanced', 'certificate'],
+    allowedTypes: ['simple', 'advanced', 'certificate', 'fnmt', 'dnie'],
     maxSignersPerRequest: 10,
     allowExternalSigners: true,
+    allowTimestamp: true,
+    allowDNIe: true,
+    allowFNMT: true,
   },
   recepcionista: {
     canSign: false,
@@ -337,6 +460,9 @@ export const SIGNATURE_PERMISSIONS: Record<UserRole, SignaturePermissions> = {
     allowedTypes: [],
     maxSignersPerRequest: 0,
     allowExternalSigners: false,
+    allowTimestamp: false,
+    allowDNIe: false,
+    allowFNMT: false,
   },
 };
 
@@ -349,37 +475,88 @@ export const DEFAULT_SIGNATURE_CONFIG: SignatureConfig = {
   defaultWorkflow: 'parallel',
   allowBiometric: true,
   allowCertificate: true,
+  allowFNMT: true,
+  allowDNIe: true,
   requireAuthentication: true,
   reminderDays: [7, 3, 1],
   expirationDays: 30,
+  enableTimestampByDefault: true,
+  defaultTimestampAuthority: 'AC TSA',
 };
 
-// Descripciones de tipos de firma
-export const SIGNATURE_TYPE_DESCRIPTIONS: Record<SignatureType, { name: string; description: string; icon: string }> = {
+// Descripciones de tipos de firma (ampliadas)
+export const SIGNATURE_TYPE_DESCRIPTIONS: Record<SignatureType, { name: string; description: string; icon: string; legalValue: 'low' | 'medium' | 'high' | 'maximum' }> = {
   simple: {
     name: 'Firma Simple',
     description: 'Firma básica con validez legal limitada. Ideal para documentos internos.',
     icon: 'Pencil',
+    legalValue: 'low',
   },
   advanced: {
     name: 'Firma Avanzada',
     description: 'Mayor seguridad y trazabilidad. Vinculada al firmante de forma única.',
     icon: 'Shield',
+    legalValue: 'medium',
   },
   qualified: {
     name: 'Firma Cualificada (eIDAS)',
     description: 'Máxima validez jurídica equivalente a firma manuscrita. Certificado cualificado.',
     icon: 'Award',
+    legalValue: 'maximum',
   },
   biometric: {
     name: 'Firma Biométrica',
     description: 'Captura datos biométricos de la firma (presión, velocidad).',
     icon: 'Fingerprint',
+    legalValue: 'medium',
   },
   certificate: {
     name: 'Certificado Digital',
-    description: 'Firma con certificado digital (DNIe, FNMT, etc.).',
+    description: 'Firma con certificado digital de cualquier autoridad.',
     icon: 'Key',
+    legalValue: 'high',
+  },
+  fnmt: {
+    name: 'Certificado FNMT',
+    description: 'Firma con certificado de la Fábrica Nacional de Moneda y Timbre. Máxima seguridad.',
+    icon: 'Landmark',
+    legalValue: 'maximum',
+  },
+  dnie: {
+    name: 'DNI Electrónico',
+    description: 'Firma utilizando tu DNIe. Requiere lector de tarjetas.',
+    icon: 'IdCard',
+    legalValue: 'maximum',
+  },
+  cloud: {
+    name: 'Firma en la Nube',
+    description: 'Firma utilizando certificado almacenado en la nube de forma segura.',
+    icon: 'Cloud',
+    legalValue: 'high',
+  },
+};
+
+// Descripciones de certificados
+export const CERTIFICATE_TYPE_DESCRIPTIONS: Record<CertificateType, { name: string; description: string; issuer: string; }> = {
+  fnmt: {
+    name: 'Certificado FNMT',
+    description: 'Certificado de persona física emitido por la FNMT-RCM',
+    issuer: 'FNMT-RCM',
+  },
+  dnie: {
+    name: 'DNI Electrónico',
+    description: 'Certificado incluido en tu Documento Nacional de Identidad',
+    issuer: 'DGP-Police',
+  },
+  cam: {
+    name: 'Certificado CAM',
+    description: 'Certificado de la Comunidad Autónoma de Madrid u otra CCAA',
+    issuer: 'CCAA',
+  },
+  other: {
+    name: 'Otro Certificado',
+    description: 'Otro certificado digital válido reconocido',
+    issuer: 'Varios',
   },
 };
 
@@ -396,3 +573,21 @@ export const WORKFLOW_DESCRIPTIONS: Record<SignatureWorkflow, { name: string; de
     icon: 'ArrowRight',
   },
 };
+
+// Configuración por defecto para firma secuencial
+export const DEFAULT_SEQUENTIAL_CONFIG: SequentialSignatureConfig = {
+  enabled: true,
+  notifyNextSigner: true,
+  waitTimeBetweenSigners: 0,
+  allowSkipping: false,
+  requireAllSigners: true,
+  expirationPerSigner: 72, // 72 horas
+};
+
+// Autoridades de sellado de tiempo reconocidas
+export const TIMESTAMP_AUTHORITIES = [
+  { id: 'ac_tsa', name: 'AC TSA', url: 'http://tsa.ac/tsa' },
+  { id: 'fnmt_tsa', name: 'FNMT TSA', url: 'http://tsa.fnmt.es' },
+  { id: 'dnte_tsa', name: 'DNIE TSA', url: 'http://tsa.dnie.es' },
+  { id: 'catcert', name: 'CATCert TSA', url: 'http://tsa.catcert.cat' },
+] as const;

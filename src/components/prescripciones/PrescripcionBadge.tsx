@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
-import { Clock, AlertCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Clock, AlertCircle, CheckCircle2, AlertTriangle, Bell } from 'lucide-react';
 import { getPrescripcionByExpedienteId, getEstadoColor, getPrioridadColor } from '@/data/prescripcionesData';
 import type { PrioridadPrescripcion } from '@/types/prescripciones';
+import { CuentaAtrasPrescripcion, TimelineAlertas } from './CuentaAtrasPrescripcion';
+import { obtenerEstadoAlertaEscalonada } from '@/services/alertasEscalonadasService';
 
 interface PrescripcionBadgeProps {
   expedienteId: string;
@@ -71,6 +73,11 @@ export function PrescripcionBadge({
       ? getPrioridadColor(prescripcion.prioridad)
       : getEstadoColor(prescripcion.estado);
 
+  // Obtener estado de alerta escalonada
+  const estadoAlerta = useMemo(() => {
+    return obtenerEstadoAlertaEscalonada(prescripcion);
+  }, [prescripcion]);
+
   return (
     <div className="group relative inline-flex">
       <span className={`inline-flex items-center gap-1.5 border rounded-full font-medium ${badgeClass} ${sizeClasses[size]} ${prescripcion.estado === 'vencida' ? 'animate-pulse' : ''}`}>
@@ -79,16 +86,39 @@ export function PrescripcionBadge({
       </span>
       
       {showTooltip && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-          <p className="font-medium">{prescripcion.descripcion}</p>
-          <p className="text-slate-300 mt-1">
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-slate-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none min-w-[280px] z-50">
+          <div className="flex items-center justify-between mb-2">
+            <p className="font-semibold">{prescripcion.descripcion}</p>
+            <CuentaAtrasPrescripcion 
+              diasRestantes={prescripcion.diasRestantes} 
+              compact 
+              animate={false}
+            />
+          </div>
+          
+          <p className="text-slate-300">
             Vence: {prescripcion.fechaVencimiento.toLocaleDateString('es-ES')}
           </p>
+          
           {prescripcion.accionRequerida && (
-            <p className="text-amber-400 mt-1">
-              Acción: {prescripcion.accionRequerida}
+            <p className="text-amber-400 mt-2">
+              ⚡ Acción: {prescripcion.accionRequerida}
             </p>
           )}
+          
+          {/* Timeline de alertas */}
+          <div className="mt-3 pt-3 border-t border-slate-600">
+            <p className="text-slate-400 mb-2">Alertas programadas:</p>
+            <TimelineAlertas alertasEnviadas={prescripcion.alertasEnviadas} />
+          </div>
+          
+          {estadoAlerta.siguienteAlerta && (
+            <p className="text-amber-400 mt-2 text-[10px]">
+              <Bell className="w-3 h-3 inline mr-1" />
+              Siguiente alerta: {estadoAlerta.siguienteAlerta.diasAntes}d
+            </p>
+          )}
+          
           <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-800" />
         </div>
       )}

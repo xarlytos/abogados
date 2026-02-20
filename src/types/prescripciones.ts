@@ -38,6 +38,9 @@ export interface Prescripcion {
   atendidoPor?: string;
 }
 
+// Niveles de escalación
+export type NivelEscalacion = 'responsable' | 'supervisor' | 'socio' | 'direccion';
+
 // Interface de Alerta
 export interface Alerta {
   id: string;
@@ -48,6 +51,19 @@ export interface Alerta {
   leida: boolean;
   diasAntes: number;
   mensaje: string;
+  nivelEscalacion: NivelEscalacion;
+  accionTomada?: string;
+  fechaAccion?: Date;
+}
+
+// Configuración de alertas escalonadas
+export interface ConfiguracionEscalacion {
+  diasAntes: number;
+  nivel: NivelEscalacion;
+  tipoNotificacion: TipoNotificacion[];
+  mensaje: string;
+  requiereAccion: boolean;
+  tiempoParaEscalar?: number; // horas antes de escalar al siguiente nivel
 }
 
 // Interface para crear nueva prescripción

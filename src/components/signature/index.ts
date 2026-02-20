@@ -7,24 +7,30 @@ export { SignatureModal } from './SignatureModal';
 export { SignatureTypeSelector, SignatureTypeBadge, SignatureTypeGrid } from './SignatureTypeSelector';
 export { SignaturePad, SignaturePadCompact } from './SignaturePad';
 export { SignerList, SignerListCompact, SignatureStatusBadge } from './SignerList';
+export { CertificateSelector, CertificateTypeBadge } from './CertificateSelector';
+export { SignatureInfoPanel, SignatureHelpButton } from './SignatureInfoPanel';
 
 // Tipos (re-exportados para conveniencia)
 export type {
   SignatureType,
+  CertificateType,
   SignatureWorkflow,
   SignerStatus,
   SignatureRequestStatus,
   SignerRole,
   Signer,
   Signature,
+  Timestamp,
   CertificateInfo,
   BiometricData,
+  SequentialSignatureConfig,
   SignatureRequest,
   SignedDocument,
   SignatureField,
   SignatureConfig,
   SignatureWidgetProps,
   SignatureTypeSelectorProps,
+  CertificateSelectorProps,
   SignerListProps,
   SignaturePadProps,
   SignatureModalProps,
@@ -37,8 +43,11 @@ export type {
 export {
   SIGNATURE_PERMISSIONS,
   DEFAULT_SIGNATURE_CONFIG,
+  DEFAULT_SEQUENTIAL_CONFIG,
   SIGNATURE_TYPE_DESCRIPTIONS,
+  CERTIFICATE_TYPE_DESCRIPTIONS,
   WORKFLOW_DESCRIPTIONS,
+  TIMESTAMP_AUTHORITIES,
 } from '@/types/signature';
 
 // Hook

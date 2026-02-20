@@ -28,7 +28,7 @@ import {
 } from '@/data/portalClienteData';
 import { useRole } from '@/hooks/useRole';
 import type { UserRole } from '@/types/roles';
-import { SignatureModal } from '@/components/signature';
+import { SignatureModal, SignatureInfoPanel, SignatureHelpButton } from '@/components/signature';
 
 type ActiveTab = 'dashboard' | 'cases' | 'invoices' | 'documents' | 'messages' | 'hearings';
 
@@ -108,6 +108,7 @@ export default function PortalCliente() {
   
   // Estado para firma electrónica
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
+  const [signatureInfoOpen, setSignatureInfoOpen] = useState(false);
   const [documentToSign, setDocumentToSign] = useState<{id: string; name: string} | null>(null);
 
   // Permisos según rol
@@ -733,18 +734,34 @@ export default function PortalCliente() {
         </main>
       </div>
 
-      {/* Modal: Firma Electrónica */}
+      {/* Modal: Firma Electrónica Avanzada */}
       <SignatureModal
         isOpen={signatureModalOpen}
         onClose={() => setSignatureModalOpen(false)}
         mode="sign"
         documentId={documentToSign?.id || ''}
         documentName={documentToSign?.name || ''}
-        onComplete={(_result) => {
-          showToast(`Documento firmado correctamente`, 'success');
+        enableTimestamp={true}
+        onComplete={(result) => {
+          const hasTimestamp = result && 'signatures' in result && result.signatures?.some((s: {timestamp?: unknown}) => s.timestamp);
+          showToast(
+            hasTimestamp 
+              ? 'Documento firmado con sello de tiempo RFC 3161' 
+              : 'Documento firmado correctamente', 
+            'success'
+          );
           setSignatureModalOpen(false);
         }}
       />
+
+      {/* Panel informativo de opciones de firma */}
+      <SignatureInfoPanel
+        isOpen={signatureInfoOpen}
+        onClose={() => setSignatureInfoOpen(false)}
+      />
+
+      {/* Botón de ayuda de firmas */}
+      <SignatureHelpButton onClick={() => setSignatureInfoOpen(true)} />
 
       {/* Toast Notifications */}
       <AnimatePresence>

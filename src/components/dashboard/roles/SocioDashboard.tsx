@@ -6,6 +6,7 @@ import {
 import { socioStats, casosAltoValor } from '@/data/rolesDashboardData';
 import { financialData } from '@/data/dashboardData';
 import { UpcomingPrescriptionsWidget } from '@/components/prescripciones/UpcomingPrescriptionsWidget';
+import { AlertasEscalonadasPanel } from '@/components/prescripciones/AlertasEscalonadasPanel';
 import { ConflictosAlertWidget } from '@/components/conflictos/ConflictosAlertWidget';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
@@ -74,6 +75,11 @@ export function SocioDashboard() {
             </motion.div>
           );
         })}
+      </motion.div>
+
+      {/* Alertas Escalonadas Panel */}
+      <motion.div variants={itemVariants}>
+        <AlertasEscalonadasPanel />
       </motion.div>
 
       {/* Prescripciones Widget */}

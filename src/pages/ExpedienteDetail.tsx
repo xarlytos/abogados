@@ -6,17 +6,19 @@ import {
   AlertCircle, Clock, FolderOpen, Download, Upload, Plus,
   Edit2, MoreVertical, Phone, Mail, MapPin,
   CheckSquare, AlertTriangle, MessageSquare, History,
-  Gavel, Users, Briefcase, FileSignature,
+  Gavel, Users, Briefcase,
   TrendingUp, TrendingDown, Wallet, Receipt,
-  Scale, Bookmark, Eye, Pen, X, Trash2, Link, Share2, Printer,
+  Scale, Bookmark, Eye, X, Link, Share2, Printer,
   Archive, Copy
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useRole } from '@/hooks/useRole';
+import { GestorDocumental } from '@/components/documentos/GestorDocumental';
+import { useDocumentosExpediente } from '@/hooks/useDocumentosExpediente';
+import { convertirDocumentoLegacy, generarCarpetasPorDefecto } from '@/data/mockDocumentos';
 
 import {
   getExpedienteById,
-  getDocumentColor,
   getActivityColor,
   type ExpedienteDetail,
   type Documento,
@@ -62,15 +64,7 @@ const PriorityBadge = ({ priority }: { priority: string }) => {
   );
 };
 
-const DocumentIcon = ({ tipo }: { tipo: string }) => {
-  const colorClass = getDocumentColor(tipo);
-  const label = tipo.toUpperCase();
-  return (
-    <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold ${colorClass}`}>
-      {label.slice(0, 3)}
-    </div>
-  );
-};
+
 
 const ActivityIcon = ({ tipo }: { tipo: string }) => {
   const colorClass = getActivityColor(tipo);
@@ -367,85 +361,7 @@ export default function ExpedienteDetail() {
     showToast('Documento registrado correctamente', 'success');
   };
 
-  const handleViewDocument = (doc: Documento) => {
-    showToast(`Abriendo ${doc.nombre}...`, 'info');
-    // Simulamos abrir el documento
-    setTimeout(() => {
-      window.open('#', '_blank');
-    }, 500);
-  };
 
-  const handleDownloadDocument = (doc: Documento) => {
-    showToast(`Descargando ${doc.nombre}...`, 'info');
-    // Simulamos la descarga
-    const link = document.createElement('a');
-    link.href = '#';
-    link.download = doc.nombre;
-    link.click();
-    
-    setTimeout(() => {
-      showToast(`${doc.nombre} descargado`, 'success');
-    }, 1000);
-  };
-
-  const handleSignDocument = (doc: Documento) => {
-    if (doc.firmado) {
-      showToast('Este documento ya está firmado', 'error');
-      return;
-    }
-    
-    setExpediente(prev => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        documentos: prev.documentos.map(d => 
-          d.id === doc.id ? { ...d, firmado: true } : d
-        )
-      };
-    });
-    
-    // Agregar actividad
-    const newActividad: Actividad = {
-      id: `act-${Date.now()}`,
-      tipo: 'documento',
-      descripcion: `Documento firmado: ${doc.nombre}`,
-      fecha: new Date().toLocaleString('es-ES'),
-      autor: 'Usuario Actual'
-    };
-    
-    setExpediente(prev => prev ? {
-      ...prev,
-      actividades: [newActividad, ...prev.actividades]
-    } : null);
-    
-    showToast(`Documento ${doc.nombre} firmado correctamente`, 'success');
-  };
-
-  const handleDeleteDocument = (docId: string) => {
-    if (!confirm('¿Estás seguro de eliminar este documento?')) return;
-    
-    setExpediente(prev => {
-      if (!prev) return null;
-      const doc = prev.documentos.find(d => d.id === docId);
-      
-      // Agregar actividad
-      const newActividad: Actividad = {
-        id: `act-${Date.now()}`,
-        tipo: 'documento',
-        descripcion: `Documento eliminado: ${doc?.nombre || docId}`,
-        fecha: new Date().toLocaleString('es-ES'),
-        autor: 'Usuario Actual'
-      };
-      
-      return {
-        ...prev,
-        documentos: prev.documentos.filter(d => d.id !== docId),
-        actividades: [newActividad, ...prev.actividades]
-      };
-    });
-    
-    showToast('Documento eliminado', 'success');
-  };
 
   const handleSaveEdit = () => {
     setExpediente(prev => {
@@ -772,13 +688,10 @@ export default function ExpedienteDetail() {
           <div className="min-h-[400px]">
             {activeTab === 'general' && <GeneralTab expediente={expediente!} />}
             {activeTab === 'documentos' && (
-              <DocumentosTab 
-                expediente={expediente!} 
-                permissions={permissions}
-                onView={handleViewDocument}
-                onDownload={handleDownloadDocument}
-                onSign={handleSignDocument}
-                onDelete={handleDeleteDocument}
+              <DocumentosTab
+                idExpediente={id!}
+                expediente={expediente!}
+                showToast={showToast}
               />
             )}
             {activeTab === 'actividad' && <ActividadTab expediente={expediente!} />}
@@ -1390,128 +1303,46 @@ function GeneralTab({ expediente }: { expediente: ExpedienteDetail }) {
   );
 }
 
-function DocumentosTab({ 
-  expediente, 
-  permissions,
-  onView,
-  onDownload,
-  onSign,
-  onDelete
-}: { 
-  expediente: ExpedienteDetail; 
-  permissions: any;
-  onView: (doc: Documento) => void;
-  onDownload: (doc: Documento) => void;
-  onSign: (doc: Documento) => void;
-  onDelete: (docId: string) => void;
+function DocumentosTab({
+  idExpediente,
+  expediente,
+  showToast,
+}: {
+  idExpediente: string;
+  expediente: ExpedienteDetail;
+  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }) {
-  const [filter, setFilter] = useState<'all' | Documento['categoria']>('all');
+  const { role } = useRole();
   
-  const filteredDocs = filter === 'all' 
-    ? expediente.documentos 
-    : expediente.documentos.filter(d => d.categoria === filter);
+  // Convertir documentos legacy al nuevo formato
+  const documentosIniciales = expediente.documentos.map(d => 
+    convertirDocumentoLegacy(d, idExpediente)
+  );
+  
+  // Generar carpetas por defecto
+  const carpetasIniciales = generarCarpetasPorDefecto(idExpediente);
+  
+  // Usar el hook de documentos
+  const hookDocumentos = useDocumentosExpediente(
+    idExpediente,
+    role,
+    'user-1', // Esto vendría del contexto de auth
+    'Usuario Actual', // Esto vendría del contexto de auth
+    documentosIniciales,
+    carpetasIniciales
+  );
 
-  const categories: { id: Documento['categoria'] | 'all'; label: string }[] = [
-    { id: 'all', label: 'Todos' },
-    { id: 'demanda', label: 'Demandas' },
-    { id: 'escritura', label: 'Escrituras' },
-    { id: 'evidencia', label: 'Evidencias' },
-    { id: 'correspondencia', label: 'Correspondencia' },
-    { id: 'factura', label: 'Facturas' },
-    { id: 'otro', label: 'Otros' },
-  ];
+  const handleVerDocumento = (doc: import('@/types/documentos').DocumentoExpediente) => {
+    showToast(`Abriendo ${doc.nombre}...`, 'info');
+    // Aquí se abriría el visor de documentos
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap gap-2">
-        {categories.map(cat => (
-          <button
-            key={cat.id}
-            onClick={() => setFilter(cat.id as any)}
-            className={`px-4 py-2 text-sm rounded-xl transition-colors ${
-              filter === cat.id
-                ? 'bg-amber-500 text-slate-950'
-                : 'bg-theme-tertiary text-theme-secondary hover:text-theme-primary'
-            }`}
-          >
-            {cat.label}
-          </button>
-        ))}
-      </div>
-
-      {filteredDocs.length === 0 ? (
-        <div className="text-center py-12 bg-theme-card border border-theme rounded-2xl">
-          <FolderOpen className="w-12 h-12 text-theme-tertiary mx-auto mb-4" />
-          <p className="text-theme-secondary">No hay documentos en esta categoría</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredDocs.map(doc => (
-            <motion.div
-              key={doc.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-4 bg-theme-card border border-theme rounded-2xl hover:bg-theme-hover transition-colors group"
-            >
-              <div className="flex items-start gap-4">
-                <DocumentIcon tipo={doc.tipo} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <h4 className="text-sm font-medium text-theme-primary truncate">{doc.nombre}</h4>
-                    {doc.firmado && (
-                      <span className="flex-shrink-0 px-2 py-0.5 text-xs bg-emerald-500/10 text-emerald-400 rounded-full flex items-center gap-1">
-                        <FileSignature className="w-3 h-3" />
-                        Firmado
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-theme-tertiary">
-                    <span>{doc.tamaño}</span>
-                    <span>•</span>
-                    <span>{doc.fecha}</span>
-                    <span>•</span>
-                    <span>{doc.autor}</span>
-                  </div>
-                  <div className="flex items-center gap-2 mt-3 flex-wrap">
-                    <button
-                      onClick={() => onView(doc)}
-                      className="flex items-center gap-1 px-3 py-1.5 text-xs bg-theme-tertiary hover:bg-theme-hover text-theme-secondary rounded-lg transition-colors"
-                    >
-                      <Eye className="w-3 h-3" />
-                      Ver
-                    </button>
-                    <button
-                      onClick={() => onDownload(doc)}
-                      className="flex items-center gap-1 px-3 py-1.5 text-xs bg-theme-tertiary hover:bg-theme-hover text-theme-secondary rounded-lg transition-colors"
-                    >
-                      <Download className="w-3 h-3" />
-                      Descargar
-                    </button>
-                    {!doc.firmado && permissions.canUploadDocs && (
-                      <button
-                        onClick={() => onSign(doc)}
-                        className="flex items-center gap-1 px-3 py-1.5 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg transition-colors"
-                      >
-                        <Pen className="w-3 h-3" />
-                        Firmar
-                      </button>
-                    )}
-                    {permissions.canDelete && (
-                      <button
-                        onClick={() => onDelete(doc.id)}
-                        className="flex items-center gap-1 px-3 py-1.5 text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
-    </div>
+    <GestorDocumental
+      hookDocumentos={hookDocumentos}
+      onVerDocumento={handleVerDocumento}
+      onMostrarToast={showToast}
+    />
   );
 }
 

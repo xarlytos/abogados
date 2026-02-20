@@ -6,33 +6,22 @@ import {
   BookOpen, Plus, Star, Lock, AlertCircle, CheckCircle, Upload,
   Edit3, Settings, Copy, Check, FileEdit, Send,
   Scale, FileSignature, Pen, Clock, ArrowUpDown, Filter,
-  FileJson, FileImage, Archive
+  FileJson, FileImage, Archive, History, Link2,
+  FileOutput, Briefcase, FolderOpen
 } from 'lucide-react';
 import { CompressButton } from '@/components/compression/CompressButton';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { SignatureModal, useSignature } from '@/components/signature';
-import { folderStructure, allFiles as initialFiles, getStatusConfig, getFileStats } from '@/data/bibliotecaData';
+import { folderStructure, allFiles as initialFiles, getStatusConfig, getFileStats, generateForensicReport, availableExpedientes, type FileItem } from '@/data/bibliotecaData';
 import { useRole } from '@/hooks/useRole';
 import type { UserRole } from '@/types/roles';
 import LegalLibrary from '@/components/legal-library/LegalLibrary';
 
-// Tipos
-type ModalType = 'upload' | 'suggest' | 'organize' | 'share' | 'delete' | 'edit' | 'view' | 'sign' | 'request-signature' | null;
+// ============================================
+// TIPOS
+// ============================================
 
-interface FileItem {
-  id: number;
-  name: string;
-  category: string;
-  subcategory: string;
-  size: string;
-  modified: string;
-  status: 'verified' | 'fake' | 'doubt' | string;
-  confidence: number;
-  author: string;
-  tags: string[];
-  notes: string;
-  type?: string;
-}
+type ModalType = 'upload' | 'suggest' | 'organize' | 'share' | 'delete' | 'edit' | 'view' | 'sign' | 'request-signature' | 'history' | 'link-expediente' | null;
 
 // ============================================
 // CONFIGURACIÓN POR ROL
@@ -51,6 +40,9 @@ const getConfigPorRol = (role: UserRole) => {
     puedeMarcarFavoritos: boolean;
     puedeConfigurarPermisos: boolean;
     puedeOrganizarArchivo: boolean;
+    puedeVerHistorial: boolean;
+    puedeExportarInforme: boolean;
+    puedeVincularExpediente: boolean;
     categoriasVisibles: string[];
     mensajeBienvenida: string;
     accionesDisponibles: string[];
@@ -67,6 +59,9 @@ const getConfigPorRol = (role: UserRole) => {
       puedeMarcarFavoritos: true,
       puedeConfigurarPermisos: true,
       puedeOrganizarArchivo: true,
+      puedeVerHistorial: true,
+      puedeExportarInforme: true,
+      puedeVincularExpediente: true,
       categoriasVisibles: ['all', 'legislacion', 'jurisprudencia', 'doctrina', 'plantillas', 'contratos', 'formatos', 'forense'],
       mensajeBienvenida: 'Acceso total: puedes subir, organizar y gestionar todos los documentos',
       accionesDisponibles: ['ver', 'descargar', 'compartir', 'editar', 'eliminar', 'configurar']
@@ -83,6 +78,9 @@ const getConfigPorRol = (role: UserRole) => {
       puedeMarcarFavoritos: true,
       puedeConfigurarPermisos: false,
       puedeOrganizarArchivo: false,
+      puedeVerHistorial: true,
+      puedeExportarInforme: true,
+      puedeVincularExpediente: true,
       categoriasVisibles: ['all', 'legislacion', 'jurisprudencia', 'doctrina', 'plantillas', 'contratos', 'formatos', 'forense'],
       mensajeBienvenida: 'Gestión completa de documentos y categorías',
       accionesDisponibles: ['ver', 'descargar', 'compartir', 'editar', 'eliminar']
@@ -99,6 +97,9 @@ const getConfigPorRol = (role: UserRole) => {
       puedeMarcarFavoritos: true,
       puedeConfigurarPermisos: false,
       puedeOrganizarArchivo: false,
+      puedeVerHistorial: true,
+      puedeExportarInforme: true,
+      puedeVincularExpediente: true,
       categoriasVisibles: ['all', 'legislacion', 'jurisprudencia', 'doctrina', 'plantillas', 'contratos', 'formatos'],
       mensajeBienvenida: 'Consulta, descarga y comparte documentos. Marca tus favoritos',
       accionesDisponibles: ['ver', 'descargar', 'compartir', 'favorito', 'sugerir']
@@ -115,6 +116,9 @@ const getConfigPorRol = (role: UserRole) => {
       puedeMarcarFavoritos: true,
       puedeConfigurarPermisos: false,
       puedeOrganizarArchivo: false,
+      puedeVerHistorial: true,
+      puedeExportarInforme: false,
+      puedeVincularExpediente: true,
       categoriasVisibles: ['all', 'legislacion', 'jurisprudencia', 'doctrina', 'plantillas', 'contratos', 'formatos'],
       mensajeBienvenida: 'Consulta documentos y plantillas para tus casos',
       accionesDisponibles: ['ver', 'descargar', 'compartir', 'favorito', 'sugerir']
@@ -131,6 +135,9 @@ const getConfigPorRol = (role: UserRole) => {
       puedeMarcarFavoritos: false,
       puedeConfigurarPermisos: false,
       puedeOrganizarArchivo: false,
+      puedeVerHistorial: false,
+      puedeExportarInforme: false,
+      puedeVincularExpediente: false,
       categoriasVisibles: ['all', 'plantillas', 'formatos', 'legislacion'],
       mensajeBienvenida: 'Acceso a formatos y plantillas para tu trabajo',
       accionesDisponibles: ['ver', 'descargar', 'usar']
@@ -147,6 +154,9 @@ const getConfigPorRol = (role: UserRole) => {
       puedeMarcarFavoritos: false,
       puedeConfigurarPermisos: false,
       puedeOrganizarArchivo: true,
+      puedeVerHistorial: false,
+      puedeExportarInforme: false,
+      puedeVincularExpediente: false,
       categoriasVisibles: ['all', 'plantillas', 'formatos', 'legislacion'],
       mensajeBienvenida: 'Consulta formatos y colabora en la organización del archivo',
       accionesDisponibles: ['ver', 'descargar', 'organizar']
@@ -163,6 +173,9 @@ const getConfigPorRol = (role: UserRole) => {
       puedeMarcarFavoritos: false,
       puedeConfigurarPermisos: false,
       puedeOrganizarArchivo: false,
+      puedeVerHistorial: false,
+      puedeExportarInforme: false,
+      puedeVincularExpediente: false,
       categoriasVisibles: ['all', 'contratos', 'plantillas', 'legislacion'],
       mensajeBienvenida: 'Acceso a documentos administrativos y contratos tipo',
       accionesDisponibles: ['ver', 'descargar', 'compartir']
@@ -179,6 +192,9 @@ const getConfigPorRol = (role: UserRole) => {
       puedeMarcarFavoritos: false,
       puedeConfigurarPermisos: false,
       puedeOrganizarArchivo: false,
+      puedeVerHistorial: false,
+      puedeExportarInforme: false,
+      puedeVincularExpediente: false,
       categoriasVisibles: ['all', 'contratos', 'plantillas'],
       mensajeBienvenida: 'Acceso a plantillas de contratos y documentos administrativos',
       accionesDisponibles: ['ver', 'descargar', 'compartir']
@@ -195,6 +211,9 @@ const getConfigPorRol = (role: UserRole) => {
       puedeMarcarFavoritos: false,
       puedeConfigurarPermisos: false,
       puedeOrganizarArchivo: false,
+      puedeVerHistorial: false,
+      puedeExportarInforme: false,
+      puedeVincularExpediente: false,
       categoriasVisibles: [],
       mensajeBienvenida: 'Contacta al administrador si necesitas acceso a documentos',
       accionesDisponibles: []
@@ -230,7 +249,7 @@ export default function Biblioteca() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
   const [favoritos, setFavoritos] = useState<number[]>([]);
-  const [allFiles, setAllFiles] = useState<FileItem[]>(initialFiles as FileItem[]);
+  const [allFiles, setAllFiles] = useState<FileItem[]>(initialFiles);
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [toast, setToast] = useState<{message: string; type: 'success' | 'info' | 'error'} | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -244,6 +263,10 @@ export default function Biblioteca() {
   const [showFilters, setShowFilters] = useState(false);
   const [hoveredFile, setHoveredFile] = useState<number | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Estados para vinculación con expedientes
+  const [selectedExpediente, setSelectedExpediente] = useState<string>('');
+  const [searchExpediente, setSearchExpediente] = useState('');
 
   // Form states
   const [uploadForm, setUploadForm] = useState({
@@ -401,6 +424,7 @@ export default function Biblioteca() {
     const newFile: FileItem = {
       id: Date.now(),
       name: uploadForm.name,
+      type: uploadForm.file.name.split('.').pop()?.toLowerCase() || 'pdf',
       category: uploadForm.category,
       subcategory: 'general',
       size: `${(uploadForm.file.size / (1024 * 1024)).toFixed(1)} MB`,
@@ -409,7 +433,17 @@ export default function Biblioteca() {
       confidence: 95,
       author: 'Usuario Actual',
       tags: uploadForm.tags.split(',').map(t => t.trim()).filter(Boolean),
-      notes: 'Documento subido recientemente'
+      notes: 'Documento subido recientemente',
+      verificationHistory: [
+        {
+          id: `vh-${Date.now()}`,
+          date: new Date().toLocaleDateString('es-ES'),
+          user: 'Usuario Actual',
+          action: 'upload',
+          notes: 'Documento cargado al sistema'
+        }
+      ],
+      linkedExpedientes: []
     };
     
     setAllFiles([newFile, ...allFiles]);
@@ -491,6 +525,109 @@ export default function Biblioteca() {
       setActiveModal('edit');
     }
   };
+
+  // ============================================
+  // NUEVAS FUNCIONALIDADES FORENSES
+  // ============================================
+
+  // Exportar informe pericial PDF
+  const handleExportForensicReport = (file: FileItem) => {
+    const reportHTML = generateForensicReport(file);
+    
+    // Crear ventana de impresión
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(reportHTML);
+      printWindow.document.close();
+      
+      // Esperar a que cargue y luego imprimir/guardar como PDF
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+        }, 500);
+      };
+      
+      showToast('Informe pericial generado. Usa "Guardar como PDF" en el diálogo de impresión.', 'success');
+    } else {
+      // Fallback: descargar HTML
+      const blob = new Blob([reportHTML], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Informe_Pericial_${file.name.replace(/\.[^/.]+$/, '')}.html`;
+      link.click();
+      URL.revokeObjectURL(url);
+      showToast('Informe descargado como HTML', 'info');
+    }
+    
+    // Registrar en historial
+    const newHistoryEntry = {
+      id: `vh-${Date.now()}`,
+      date: new Date().toLocaleDateString('es-ES'),
+      user: 'Usuario Actual',
+      action: 'export' as const,
+      notes: 'Informe pericial exportado en PDF'
+    };
+    
+    setAllFiles(allFiles.map(f => 
+      f.id === file.id 
+        ? { ...f, verificationHistory: [newHistoryEntry, ...f.verificationHistory] }
+        : f
+    ));
+    
+    if (selectedFile?.id === file.id) {
+      setSelectedFile({ ...file, verificationHistory: [newHistoryEntry, ...file.verificationHistory] });
+    }
+  };
+
+  // Vincular con expediente
+  const handleLinkExpediente = () => {
+    if (!selectedFile || !selectedExpediente) {
+      showToast('Por favor selecciona un expediente', 'error');
+      return;
+    }
+    
+    const expediente = availableExpedientes.find(e => e.id === selectedExpediente);
+    if (!expediente) return;
+    
+    const newLink = {
+      id: expediente.id,
+      title: expediente.title,
+      date: new Date().toLocaleDateString('es-ES')
+    };
+    
+    const newHistoryEntry = {
+      id: `vh-${Date.now()}`,
+      date: new Date().toLocaleDateString('es-ES'),
+      user: 'Usuario Actual',
+      action: 'attach' as const,
+      notes: `Documento vinculado a expediente ${expediente.id}`,
+      expedienteId: expediente.id,
+      expedienteTitle: expediente.title
+    };
+    
+    const updatedFile = {
+      ...selectedFile,
+      linkedExpedientes: [...(selectedFile.linkedExpedientes || []), newLink],
+      verificationHistory: [newHistoryEntry, ...selectedFile.verificationHistory]
+    };
+    
+    setAllFiles(allFiles.map(f => f.id === selectedFile.id ? updatedFile : f));
+    setSelectedFile(updatedFile);
+    setSelectedExpediente('');
+    setSearchExpediente('');
+    setActiveModal(null);
+    showToast(`Documento vinculado a ${expediente.id}`, 'success');
+  };
+
+  // Filtrar expedientes disponibles
+  const filteredExpedientes = useMemo(() => {
+    return availableExpedientes.filter(exp => 
+      exp.id.toLowerCase().includes(searchExpediente.toLowerCase()) ||
+      exp.title.toLowerCase().includes(searchExpediente.toLowerCase()) ||
+      exp.client.toLowerCase().includes(searchExpediente.toLowerCase())
+    );
+  }, [searchExpediente]);
 
   // Estadísticas ajustadas según el rol
   const stats = useMemo(() => {
@@ -977,6 +1114,7 @@ export default function Biblioteca() {
                   const statusConfig = getStatusConfig(file.status);
                   const isFavorito = favoritos.includes(file.id);
                   const isHovered = hoveredFile === file.id;
+                  const hasExpedientes = file.linkedExpedientes && file.linkedExpedientes.length > 0;
                   return (
                       <motion.div
                       key={file.id}
@@ -1072,13 +1210,25 @@ export default function Biblioteca() {
                           )}
                         </div>
 
-                        {/* Etiquetas */}
-                        <div className="flex flex-wrap gap-1.5">
+                        {/* Etiquetas e indicadores */}
+                        <div className="flex flex-wrap gap-1.5 items-center">
                           {file.tags.slice(0, 3).map((tag) => (
                             <span key={tag} className="px-2.5 py-1 bg-theme-tertiary/80 text-theme-secondary text-[10px] rounded-lg border border-theme-hover/50">{tag}</span>
                           ))}
                           {file.tags.length > 3 && (
                             <span className="px-2.5 py-1 bg-theme-tertiary/80 text-theme-muted text-[10px] rounded-lg border border-theme-hover/50">+{file.tags.length - 3}</span>
+                          )}
+                          {hasExpedientes && (
+                            <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-[10px] rounded-lg border border-blue-500/30 flex items-center gap-1 ml-auto">
+                              <Briefcase className="w-3 h-3" />
+                              {file.linkedExpedientes?.length}
+                            </span>
+                          )}
+                          {config.puedeVerHistorial && file.verificationHistory.length > 0 && (
+                            <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-[10px] rounded-lg border border-purple-500/30 flex items-center gap-1">
+                              <History className="w-3 h-3" />
+                              {file.verificationHistory.length}
+                            </span>
                           )}
                         </div>
                       </div>
@@ -1092,6 +1242,7 @@ export default function Biblioteca() {
                   const statusConfig = getStatusConfig(file.status);
                   const isFavorito = favoritos.includes(file.id);
                   const isHovered = hoveredFile === file.id;
+                  const hasExpedientes = file.linkedExpedientes && file.linkedExpedientes.length > 0;
                   return (
                     <motion.div
                       key={file.id}
@@ -1122,6 +1273,12 @@ export default function Biblioteca() {
                             >
                               <Star className={`w-4 h-4 ${isFavorito ? 'fill-current' : ''}`} />
                             </button>
+                          )}
+                          {hasExpedientes && (
+                            <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded-lg border border-blue-500/30 flex items-center gap-1">
+                              <Briefcase className="w-3 h-3" />
+                              {file.linkedExpedientes?.length}
+                            </span>
                           )}
                         </div>
                         <div className="flex items-center gap-4 mt-1">
@@ -1204,7 +1361,7 @@ export default function Biblioteca() {
           {selectedFile && (
             <motion.div
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 380, opacity: 1 }}
+              animate={{ width: 420, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               className="border-l border-theme bg-theme-secondary/60 overflow-hidden"
             >
@@ -1212,6 +1369,7 @@ export default function Biblioteca() {
                 {(() => {
                   const statusConfig = getStatusConfig(selectedFile.status);
                   const isFavorito = favoritos.includes(selectedFile.id);
+                  const hasExpedientes = selectedFile.linkedExpedientes && selectedFile.linkedExpedientes.length > 0;
                   return (
                     <>
                       <div className="p-6 border-b border-theme">
@@ -1267,6 +1425,27 @@ export default function Biblioteca() {
                           </div>
                         )}
 
+                        {/* Expedientes vinculados */}
+                        {hasExpedientes && (
+                          <div>
+                            <h4 className="text-sm font-medium text-theme-primary mb-3 flex items-center gap-2">
+                              <Briefcase className="w-4 h-4 text-blue-400" />
+                              Expedientes vinculados
+                            </h4>
+                            <div className="space-y-2">
+                              {selectedFile.linkedExpedientes?.map((exp) => (
+                                <div key={exp.id} className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-blue-400">{exp.id}</span>
+                                    <span className="text-xs text-theme-muted">{exp.date}</span>
+                                  </div>
+                                  <p className="text-xs text-theme-secondary mt-1">{exp.title}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                         <div className="space-y-3">
                           <div className="flex justify-between py-2 border-b border-theme">
                             <span className="text-sm text-theme-secondary">Tamaño</span>
@@ -1310,6 +1489,7 @@ export default function Biblioteca() {
                           </div>
                         )}
 
+                        {/* Acciones principales */}
                         <div className="grid grid-cols-2 gap-3">
                           <button 
                             onClick={() => { setActiveModal('view'); }}
@@ -1332,6 +1512,39 @@ export default function Biblioteca() {
                             >
                               <Share2 className="w-4 h-4" />
                               <span className="text-sm">Compartir</span>
+                            </button>
+                          )}
+                          
+                          {/* Botón Historial de verificaciones */}
+                          {config.puedeVerHistorial && (
+                            <button 
+                              onClick={() => setActiveModal('history')}
+                              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-500/10 text-purple-400 rounded-xl hover:bg-purple-500/20 border border-purple-500/20"
+                            >
+                              <History className="w-4 h-4" />
+                              <span className="text-sm">Historial</span>
+                            </button>
+                          )}
+                          
+                          {/* Botón Exportar Informe */}
+                          {config.puedeExportarInforme && (
+                            <button 
+                              onClick={() => handleExportForensicReport(selectedFile)}
+                              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500/10 text-orange-400 rounded-xl hover:bg-orange-500/20 border border-orange-500/20"
+                            >
+                              <FileOutput className="w-4 h-4" />
+                              <span className="text-sm">Informe PDF</span>
+                            </button>
+                          )}
+                          
+                          {/* Botón Vincular a Expediente */}
+                          {config.puedeVincularExpediente && (
+                            <button 
+                              onClick={() => setActiveModal('link-expediente')}
+                              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500/10 text-blue-400 rounded-xl hover:bg-blue-500/20 border border-blue-500/20"
+                            >
+                              <Link2 className="w-4 h-4" />
+                              <span className="text-sm">Vincular</span>
                             </button>
                           )}
                           
@@ -1414,6 +1627,259 @@ export default function Biblioteca() {
             {toast.type === 'success' ? <CheckCircle className="w-5 h-5" /> : 
              toast.type === 'error' ? <AlertCircle className="w-5 h-5" /> : <Scan className="w-5 h-5" />}
             {toast.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ============================================
+          MODALES
+          ============================================ */}
+
+      {/* Modal: Historial de Verificaciones */}
+      <AnimatePresence>
+        {activeModal === 'history' && selectedFile && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setActiveModal(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-theme-secondary border border-theme rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between p-6 border-b border-theme">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-500/20 rounded-xl">
+                    <History className="w-6 h-6 text-purple-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-theme-primary">Historial de Verificaciones</h3>
+                    <p className="text-sm text-theme-secondary truncate max-w-md">{selectedFile.name}</p>
+                  </div>
+                </div>
+                <button onClick={() => setActiveModal(null)} className="p-2 text-theme-secondary hover:text-theme-primary hover:bg-theme-tertiary rounded-lg">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto max-h-[60vh]">
+                <div className="space-y-4">
+                  {selectedFile.verificationHistory.map((item, index) => (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="relative pl-8 pb-4 last:pb-0"
+                    >
+                      {/* Línea de tiempo */}
+                      {index < selectedFile.verificationHistory.length - 1 && (
+                        <div className="absolute left-3 top-8 bottom-0 w-0.5 bg-theme-tertiary" />
+                      )}
+                      
+                      {/* Punto de la línea de tiempo */}
+                      <div className={`absolute left-0 top-1 w-6 h-6 rounded-full flex items-center justify-center ${
+                        item.action === 'verify' ? 'bg-emerald-500/20' :
+                        item.action === 'reject' ? 'bg-red-500/20' :
+                        item.action === 'upload' ? 'bg-blue-500/20' :
+                        item.action === 'export' ? 'bg-orange-500/20' :
+                        item.action === 'attach' ? 'bg-blue-500/20' :
+                        'bg-amber-500/20'
+                      }`}>
+                        {item.action === 'verify' ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> :
+                         item.action === 'reject' ? <X className="w-3.5 h-3.5 text-red-400" /> :
+                         item.action === 'upload' ? <Upload className="w-3.5 h-3.5 text-blue-400" /> :
+                         item.action === 'export' ? <FileOutput className="w-3.5 h-3.5 text-orange-400" /> :
+                         item.action === 'attach' ? <Link2 className="w-3.5 h-3.5 text-blue-400" /> :
+                         <Scan className="w-3.5 h-3.5 text-amber-400" />}
+                      </div>
+                      
+                      {/* Contenido */}
+                      <div className="bg-theme-tertiary/50 rounded-xl p-4 border border-theme-hover">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-theme-primary">
+                            {item.action === 'verify' ? 'Verificación exitosa' :
+                             item.action === 'reject' ? 'Documento rechazado' :
+                             item.action === 'upload' ? 'Carga de documento' :
+                             item.action === 'export' ? 'Exportación de informe' :
+                             item.action === 'attach' ? 'Vinculación a expediente' :
+                             'Análisis en curso'}
+                          </span>
+                          <span className="text-xs text-theme-muted">{item.date}</span>
+                        </div>
+                        
+                        {item.result && (
+                          <p className="text-sm text-theme-secondary mb-2">{item.result}</p>
+                        )}
+                        
+                        {item.notes && (
+                          <p className="text-xs text-theme-muted bg-theme-secondary/50 p-2 rounded-lg">{item.notes}</p>
+                        )}
+                        
+                        {item.confidence && (
+                          <div className="mt-2 flex items-center gap-2">
+                            <span className="text-xs text-theme-muted">Confianza:</span>
+                            <div className="flex-1 h-1.5 bg-theme-secondary rounded-full overflow-hidden max-w-[100px]">
+                              <div 
+                                className={`h-full rounded-full ${
+                                  item.confidence >= 90 ? 'bg-emerald-500' : 
+                                  item.confidence >= 70 ? 'bg-amber-500' : 'bg-red-500'
+                                }`}
+                                style={{ width: `${item.confidence}%` }}
+                              />
+                            </div>
+                            <span className={`text-xs font-medium ${
+                              item.confidence >= 90 ? 'text-emerald-400' : 
+                              item.confidence >= 70 ? 'text-amber-400' : 'text-red-400'
+                            }`}>{item.confidence}%</span>
+                          </div>
+                        )}
+                        
+                        {item.expedienteId && (
+                          <div className="mt-2 flex items-center gap-2 text-xs text-blue-400">
+                            <Briefcase className="w-3 h-3" />
+                            <span>Vinculado a {item.expedienteId}</span>
+                          </div>
+                        )}
+                        
+                        <div className="mt-2 text-xs text-theme-muted">
+                          Por: <span className="text-theme-secondary">{item.user}</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-theme flex justify-between">
+                <button
+                  onClick={() => setActiveModal(null)}
+                  className="px-6 py-2.5 border border-theme-hover text-theme-secondary rounded-xl hover:text-theme-primary transition-colors"
+                >
+                  Cerrar
+                </button>
+                {config.puedeExportarInforme && (
+                  <button
+                    onClick={() => {
+                      handleExportForensicReport(selectedFile);
+                      setActiveModal(null);
+                    }}
+                    className="px-6 py-2.5 bg-orange-500/10 text-orange-400 rounded-xl hover:bg-orange-500/20 border border-orange-500/20 flex items-center gap-2"
+                  >
+                    <FileOutput className="w-4 h-4" />
+                    Exportar informe
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal: Vincular a Expediente */}
+      <AnimatePresence>
+        {activeModal === 'link-expediente' && selectedFile && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setActiveModal(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-theme-secondary border border-theme rounded-2xl w-full max-w-lg max-h-[80vh] overflow-hidden"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between p-6 border-b border-theme">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-500/20 rounded-xl">
+                    <Link2 className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-theme-primary">Vincular a Expediente</h3>
+                    <p className="text-sm text-theme-secondary truncate max-w-sm">{selectedFile.name}</p>
+                  </div>
+                </div>
+                <button onClick={() => setActiveModal(null)} className="p-2 text-theme-secondary hover:text-theme-primary hover:bg-theme-tertiary rounded-lg">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="p-6">
+                {/* Búsqueda de expedientes */}
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-theme-muted" />
+                  <input
+                    type="text"
+                    placeholder="Buscar expediente por ID, título o cliente..."
+                    value={searchExpediente}
+                    onChange={(e) => setSearchExpediente(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-theme-tertiary border border-theme-hover rounded-xl text-theme-primary text-sm placeholder-theme-muted focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                {/* Lista de expedientes */}
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {filteredExpedientes.length === 0 ? (
+                    <div className="text-center py-8">
+                      <FolderOpen className="w-12 h-12 text-theme-tertiary mx-auto mb-3" />
+                      <p className="text-sm text-theme-secondary">No se encontraron expedientes</p>
+                    </div>
+                  ) : (
+                    filteredExpedientes.map((exp) => (
+                      <button
+                        key={exp.id}
+                        onClick={() => setSelectedExpediente(exp.id)}
+                        className={`w-full p-4 rounded-xl border text-left transition-all ${
+                          selectedExpediente === exp.id
+                            ? 'bg-blue-500/10 border-blue-500/50'
+                            : 'bg-theme-tertiary/50 border-theme-hover hover:border-blue-500/30'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold text-blue-400">{exp.id}</span>
+                              <span className="px-2 py-0.5 bg-theme-secondary text-[10px] text-theme-muted rounded">{exp.type}</span>
+                            </div>
+                            <p className="text-sm text-theme-primary mt-1">{exp.title}</p>
+                            <p className="text-xs text-theme-muted mt-1">Cliente: {exp.client}</p>
+                          </div>
+                          {selectedExpediente === exp.id && (
+                            <CheckCircle className="w-5 h-5 text-blue-400" />
+                          )}
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-theme flex gap-3">
+                <button
+                  onClick={() => setActiveModal(null)}
+                  className="flex-1 py-2.5 border border-theme-hover text-theme-secondary rounded-xl hover:text-theme-primary transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleLinkExpediente}
+                  disabled={!selectedExpediente}
+                  className="flex-1 py-2.5 bg-blue-500 text-white font-medium rounded-xl hover:bg-blue-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <Link2 className="w-4 h-4" />
+                  Vincular
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1917,6 +2383,15 @@ export default function Biblioteca() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  {config.puedeExportarInforme && (
+                    <button 
+                      onClick={() => handleExportForensicReport(selectedFile)}
+                      className="flex items-center gap-2 px-3 py-2 bg-orange-500/10 text-orange-400 rounded-lg hover:bg-orange-500/20 border border-orange-500/20"
+                    >
+                      <FileOutput className="w-4 h-4" />
+                      <span className="text-sm">Informe PDF</span>
+                    </button>
+                  )}
                   <button 
                     onClick={() => handleDownload(selectedFile)}
                     className="flex items-center gap-2 px-3 py-2 bg-theme-tertiary text-theme-primary rounded-lg hover:bg-theme-secondary"

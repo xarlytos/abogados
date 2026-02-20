@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Pencil, Shield, Award, Fingerprint, Key,
+  Landmark, IdCard, Cloud,
   ChevronDown, Info, CheckCircle2
 } from 'lucide-react';
 import type { SignatureType, SignatureTypeSelectorProps } from '@/types/signature';
@@ -17,6 +18,9 @@ const typeIcons: Record<SignatureType, typeof Pencil> = {
   qualified: Award,
   biometric: Fingerprint,
   certificate: Key,
+  fnmt: Landmark,
+  dnie: IdCard,
+  cloud: Cloud,
 };
 
 const typeColors: Record<SignatureType, { bg: string; border: string; text: string; icon: string }> = {
@@ -49,6 +53,24 @@ const typeColors: Record<SignatureType, { bg: string; border: string; text: stri
     border: 'border-blue-500/20',
     text: 'text-blue-400',
     icon: 'text-blue-500',
+  },
+  fnmt: {
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/20',
+    text: 'text-emerald-400',
+    icon: 'text-emerald-500',
+  },
+  dnie: {
+    bg: 'bg-blue-500/10',
+    border: 'border-blue-500/20',
+    text: 'text-blue-400',
+    icon: 'text-blue-500',
+  },
+  cloud: {
+    bg: 'bg-cyan-500/10',
+    border: 'border-cyan-500/20',
+    text: 'text-cyan-400',
+    icon: 'text-cyan-500',
   },
 };
 

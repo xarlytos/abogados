@@ -5,7 +5,7 @@ import {
   Eye, Edit2, Copy, Trash2, MoreVertical, FileSignature,
   Gavel, ClipboardList, Mail, Building, LayoutTemplate,
   Lock, Crown, Users, CheckCircle, AlertCircle, X,
-  Flame, Sparkles, Copy as CopyIcon, Check
+  Flame, Sparkles, Copy as CopyIcon, Check, Wand2
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { 
@@ -17,8 +17,9 @@ import {
 } from '@/data/plantillasData';
 import { useRole } from '@/hooks/useRole';
 import type { UserRole } from '@/types/roles';
+import { TemplateMergeModal } from '@/components/plantillas/TemplateMergeModal';
 
-type ModalType = 'create' | 'edit' | 'delete' | 'view' | null;
+type ModalType = 'create' | 'edit' | 'delete' | 'view' | 'merge' | null;
 
 // Configuración de acceso por rol
 const ROLE_ACCESS: Record<UserRole, { canView: boolean; canCreate: boolean; canEdit: boolean; canDelete: boolean }> = {
@@ -56,6 +57,7 @@ export default function Plantillas() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [editingPlantilla, setEditingPlantilla] = useState<Plantilla | null>(null);
+  const [mergePlantilla, setMergePlantilla] = useState<Plantilla | null>(null);
   const [toast, setToast] = useState<{message: string; type: 'success' | 'error'} | null>(null);
   
   // Datos mutables
@@ -102,6 +104,22 @@ export default function Plantillas() {
     setPlantillasData(prev => prev.map(p => 
       p.id === plantilla.id ? { ...p, usageCount: p.usageCount + 1 } : p
     ));
+  };
+
+  const handleMerge = (plantilla: Plantilla) => {
+    setMergePlantilla(plantilla);
+    setActiveModal('merge');
+  };
+
+  const closeMergeModal = () => {
+    setMergePlantilla(null);
+    setActiveModal(null);
+    // Incrementar contador de uso después de generar
+    if (mergePlantilla) {
+      setPlantillasData(prev => prev.map(p => 
+        p.id === mergePlantilla.id ? { ...p, usageCount: p.usageCount + 1 } : p
+      ));
+    }
   };
 
   const handleDelete = () => {
@@ -522,9 +540,16 @@ export default function Plantillas() {
                       <button
                         onClick={(e) => { e.stopPropagation(); handleDownload(plantilla); }}
                         className="p-2 text-theme-muted hover:text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-colors"
-                        title="Descargar"
+                        title="Descargar vacía"
                       >
                         <Download className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleMerge(plantilla); }}
+                        className="p-2 text-theme-muted hover:text-purple-500 hover:bg-purple-500/10 rounded-lg transition-colors"
+                        title="Generar con datos de expediente"
+                      >
+                        <Wand2 className="w-4 h-4" />
                       </button>
                       {permissions.canCreate && (
                         <button
@@ -625,9 +650,16 @@ export default function Plantillas() {
                         <button 
                           onClick={(e) => { e.stopPropagation(); handleDownload(plantilla); }}
                           className="p-2 text-theme-muted hover:text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-colors"
-                          title="Descargar"
+                          title="Descargar vacía"
                         >
                           <Download className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleMerge(plantilla); }}
+                          className="p-2 text-theme-muted hover:text-purple-500 hover:bg-purple-500/10 rounded-lg transition-colors"
+                          title="Generar con datos de expediente"
+                        >
+                          <Wand2 className="w-4 h-4" />
                         </button>
                         {permissions.canEdit && (
                           <button 
@@ -707,8 +739,19 @@ export default function Plantillas() {
             onDownload={() => handleDownload(selectedPlantilla)}
             onDuplicate={() => handleDuplicate(selectedPlantilla)}
             onDelete={() => openDeleteModal(selectedPlantilla)}
+            onMerge={() => handleMerge(selectedPlantilla)}
           />
         )}
+
+        {/* Modal de Merge */}
+        <AnimatePresence>
+          {activeModal === 'merge' && mergePlantilla && (
+            <TemplateMergeModal 
+              plantilla={mergePlantilla}
+              onClose={closeMergeModal}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Modal Confirmar Eliminación */}
         <AnimatePresence>
@@ -789,9 +832,10 @@ interface PlantillaModalProps {
   onDownload: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
+  onMerge: () => void;
 }
 
-function PlantillaModal({ plantilla, onClose, permissions, onDownload, onDuplicate, onDelete }: PlantillaModalProps) {
+function PlantillaModal({ plantilla, onClose, permissions, onDownload, onDuplicate, onDelete, onMerge }: PlantillaModalProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'variables' | 'history'>('details');
   const [copiedVar, setCopiedVar] = useState<string | null>(null);
 
@@ -1044,10 +1088,19 @@ function PlantillaModal({ plantilla, onClose, permissions, onDownload, onDuplica
             )}
             <button 
               onClick={() => { onDownload(); onClose(); }}
-              className="px-4 py-2 bg-emerald-500 text-slate-950 font-medium rounded-xl hover:bg-emerald-400 transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-theme-tertiary text-theme-primary font-medium rounded-xl hover:bg-theme-hover transition-colors flex items-center gap-2"
+              title="Descargar plantilla vacía"
             >
               <Download className="w-4 h-4" />
-              Descargar
+              Descargar vacía
+            </button>
+            <button 
+              onClick={() => { onMerge(); onClose(); }}
+              className="px-4 py-2 bg-purple-500 text-white font-medium rounded-xl hover:bg-purple-400 transition-colors flex items-center gap-2"
+              title="Generar documento pre-rellenado con datos de expediente"
+            >
+              <Wand2 className="w-4 h-4" />
+              Generar con Merge
             </button>
           </div>
         </div>

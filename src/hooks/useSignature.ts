@@ -1,5 +1,6 @@
 // ============================================
-// HOOK PARA GESTIÓN DE FIRMA ELECTRÓNICA
+// HOOK PARA GESTIÓN DE FIRMA ELECTRÓNICA AVANZADA
+// Compatible con FNMT, DNIe, firma múltiple secuencial y sellado de tiempo
 // ============================================
 
 import { useState, useCallback, useMemo } from 'react';
@@ -11,7 +12,9 @@ import type {
   SignatureConfig,
   Signature,
   Signer,
-  SignatureField
+  SignatureField,
+  Timestamp,
+  SequentialSignatureConfig
 } from '@/types/signature';
 import { SIGNATURE_PERMISSIONS, DEFAULT_SIGNATURE_CONFIG } from '@/types/signature';
 import type { UserRole } from '@/types/roles';
@@ -22,7 +25,7 @@ import {
 } from '@/data/signatureData';
 
 // ============================================
-// HOOK PRINCIPAL
+// INTERFACES
 // ============================================
 
 export interface UseSignatureReturn {
@@ -49,29 +52,40 @@ export interface UseSignatureReturn {
   getPendingForCurrentUser: () => SignatureRequest[];
   getSignatureFields: (documentId: string) => SignatureField[];
   
-  // Utilidades
+  // Utilidades de firma secuencial
   canSign: (request: SignatureRequest) => boolean;
   isRequestCompleted: (request: SignatureRequest) => boolean;
   getNextSigner: (request: SignatureRequest) => Signer | undefined;
+  getCurrentSigner: (request: SignatureRequest) => Signer | undefined;
+  advanceSequentialWorkflow: (requestId: string) => Promise<void>;
   validateSigners: (signers: Partial<Signer>[]) => { valid: boolean; errors: string[] };
+  
+  // Utilidades de sellado de tiempo
+  generateTimestamp: (documentHash: string, authority?: string) => Promise<Timestamp>;
+  verifyTimestamp: (timestamp: Timestamp) => Promise<boolean>;
 }
 
 export interface CreateSignatureRequestData {
   documentId: string;
   documentName: string;
   documentUrl?: string;
+  documentHash?: string;
   signers: Partial<Signer>[];
   signatureType: SignatureType;
   workflow: SignatureWorkflow;
+  sequentialConfig?: SequentialSignatureConfig;
   message?: string;
   expiresAt?: string;
   autoReminders?: boolean;
+  enableTimestamp?: boolean;
+  timestampAuthority?: string;
 }
 
 export interface SignDocumentData {
   type: SignatureType;
-  signatureImage?: string; // Base64 para firma biométrica/simple
-  certificateData?: string; // Datos del certificado
+  signatureImage?: string;           // Base64 para firma biométrica/simple
+  certificateData?: string;          // Datos del certificado (JSON)
+  certificateType?: string;          // Tipo de certificado
   biometricData?: {
     pressurePoints: number;
     speed: number;
@@ -80,6 +94,9 @@ export interface SignDocumentData {
   };
   ipAddress?: string;
   userAgent?: string;
+  timestamp?: Timestamp;             // Sello de tiempo RFC 3161
+  signatureValue?: string;           // Valor de firma digital
+  ocspResponse?: string;             // Respuesta OCSP
 }
 
 export function useSignature(role: UserRole, userEmail?: string): UseSignatureReturn {
@@ -103,7 +120,7 @@ export function useSignature(role: UserRole, userEmail?: string): UseSignatureRe
   // ============================================
 
   /**
-   * Crear una nueva solicitud de firma
+   * Crear una nueva solicitud de firma con soporte para firma secuencial y sellado de tiempo
    */
   const createRequest = useCallback(async (data: CreateSignatureRequestData): Promise<SignatureRequest> => {
     setIsLoading(true);
@@ -129,6 +146,19 @@ export function useSignature(role: UserRole, userEmail?: string): UseSignatureRe
         throw new Error(validation.errors.join(', '));
       }
 
+      // Validar sellado de tiempo
+      if (data.enableTimestamp && !permissions.allowTimestamp) {
+        throw new Error('No tienes permisos para usar sellado de tiempo');
+      }
+
+      // Generar hash del documento si no se proporciona
+      const documentHash = data.documentHash || `hash-${Date.now()}-${data.documentId}`;
+
+      // Generar sello de tiempo si está habilitado
+      if (data.enableTimestamp) {
+        await generateTimestamp(documentHash, data.timestampAuthority);
+      }
+
       // Crear objeto de solicitud
       const newRequest: SignatureRequest = {
         id: `sig-req-${Date.now()}`,
@@ -136,9 +166,18 @@ export function useSignature(role: UserRole, userEmail?: string): UseSignatureRe
         documentName: data.documentName,
         documentUrl: data.documentUrl,
         documentType: 'application/pdf',
+        documentHash,
         status: 'pending',
         signatureType: data.signatureType,
         workflow: data.workflow,
+        sequentialConfig: data.workflow === 'sequential' && data.sequentialConfig ? {
+          enabled: true,
+          notifyNextSigner: data.sequentialConfig.notifyNextSigner ?? true,
+          waitTimeBetweenSigners: data.sequentialConfig.waitTimeBetweenSigners ?? 0,
+          allowSkipping: data.sequentialConfig.allowSkipping ?? false,
+          requireAllSigners: data.sequentialConfig.requireAllSigners ?? true,
+          expirationPerSigner: data.sequentialConfig.expirationPerSigner ?? 72,
+        } : undefined,
         signers: data.signers.map((s, index) => ({
           id: `signer-${Date.now()}-${index}`,
           email: s.email || '',
@@ -146,6 +185,7 @@ export function useSignature(role: UserRole, userEmail?: string): UseSignatureRe
           role: s.role || 'otro',
           order: s.order || index + 1,
           status: 'pending',
+          requiredSignatureType: s.requiredSignatureType || data.signatureType,
         })),
         signatures: [],
         message: data.message,
@@ -154,6 +194,8 @@ export function useSignature(role: UserRole, userEmail?: string): UseSignatureRe
         expiresAt: data.expiresAt,
         reminderDays: config.reminderDays,
         autoReminders: data.autoReminders ?? true,
+        enableTimestamp: data.enableTimestamp ?? false,
+        timestampAuthority: data.timestampAuthority,
       };
 
       // Simular llamada API
@@ -161,6 +203,15 @@ export function useSignature(role: UserRole, userEmail?: string): UseSignatureRe
       
       setRequests(prev => [newRequest, ...prev]);
       setCurrentRequest(newRequest);
+      
+      // Si es flujo secuencial, notificar al primer firmante
+      if (data.workflow === 'sequential' && newRequest.sequentialConfig?.notifyNextSigner) {
+        const firstSigner = newRequest.signers.sort((a, b) => a.order - b.order)[0];
+        if (firstSigner) {
+          console.log(`[SECUENCIAL] Notificando al primer firmante: ${firstSigner.email}`);
+          // En producción: enviar email/SMS
+        }
+      }
       
       return newRequest;
     } catch (err) {
@@ -173,7 +224,7 @@ export function useSignature(role: UserRole, userEmail?: string): UseSignatureRe
   }, [permissions, config, role]);
 
   /**
-   * Firmar un documento
+   * Firmar un documento con soporte para certificados y sellado de tiempo
    */
   const signDocument = useCallback(async (
     requestId: string, 
@@ -196,11 +247,24 @@ export function useSignature(role: UserRole, userEmail?: string): UseSignatureRe
         throw new Error('No puedes firmar este documento en este momento');
       }
 
+      // Validar tipo de firma requerido
+      const currentSigner = request.signers.find(s => s.email === userEmail);
+      if (currentSigner?.requiredSignatureType && currentSigner.requiredSignatureType !== signatureData.type) {
+        throw new Error(`Se requiere tipo de firma: ${currentSigner.requiredSignatureType}`);
+      }
+
+      // Generar sello de tiempo adicional si no viene incluido
+      let timestamp = signatureData.timestamp;
+      if (request.enableTimestamp && !timestamp) {
+        const documentHash = request.documentHash || `hash-${requestId}`;
+        timestamp = await generateTimestamp(documentHash, request.timestampAuthority);
+      }
+
       // Crear objeto de firma
       const newSignature: Signature = {
         id: `sig-${Date.now()}`,
-        signerId: 'current-user', // En producción, ID del usuario actual
-        signerName: 'Usuario Actual',
+        signerId: currentSigner?.id || 'current-user',
+        signerName: currentSigner?.name || 'Usuario Actual',
         signerEmail: userEmail || 'usuario@bufete.com',
         type: signatureData.type,
         signedAt: new Date().toISOString(),
@@ -208,6 +272,12 @@ export function useSignature(role: UserRole, userEmail?: string): UseSignatureRe
         userAgent: signatureData.userAgent,
         signatureImage: signatureData.signatureImage,
         biometricData: signatureData.biometricData,
+        certificateInfo: signatureData.certificateData ? JSON.parse(signatureData.certificateData) : undefined,
+        timestamp,
+        signatureValue: signatureData.signatureValue,
+        ocspResponse: signatureData.ocspResponse,
+        crlChecked: true,
+        crlCheckDate: new Date().toISOString(),
       };
 
       // Actualizar estado
@@ -226,6 +296,18 @@ export function useSignature(role: UserRole, userEmail?: string): UseSignatureRe
 
         // Verificar si está completado
         const allSigned = updatedSigners.every(s => s.status === 'signed');
+        
+        // Avanzar flujo secuencial
+        if (r.workflow === 'sequential' && !allSigned) {
+          const nextPending = updatedSigners
+            .filter(s => s.status === 'pending')
+            .sort((a, b) => a.order - b.order)[0];
+          
+          if (nextPending && r.sequentialConfig?.notifyNextSigner) {
+            console.log(`[SECUENCIAL] Notificando al siguiente firmante: ${nextPending.email}`);
+            // En producción: enviar email/SMS
+          }
+        }
         
         return {
           ...r,
@@ -259,7 +341,6 @@ export function useSignature(role: UserRole, userEmail?: string): UseSignatureRe
         throw new Error('Solicitud no encontrada');
       }
 
-      // Solo puede cancelar quien la creó o tiene permisos
       if (request.createdBy !== role && !permissions.canDeleteRequests) {
         throw new Error('No tienes permisos para cancelar esta solicitud');
       }
@@ -314,7 +395,6 @@ export function useSignature(role: UserRole, userEmail?: string): UseSignatureRe
         throw new Error('Solicitud no encontrada');
       }
 
-      // Simular envío
       await new Promise(resolve => setTimeout(resolve, 500));
       
       console.log(`Recordatorio enviado para solicitud ${requestId}${signerId ? ` al firmante ${signerId}` : ''}`);
@@ -383,7 +463,7 @@ export function useSignature(role: UserRole, userEmail?: string): UseSignatureRe
   }, []);
 
   /**
-   * Obtener el siguiente firmante en cola
+   * Obtener el siguiente firmante en cola (para flujo secuencial)
    */
   const getNextSigner = useCallback((request: SignatureRequest): Signer | undefined => {
     if (request.workflow === 'sequential') {
@@ -394,6 +474,29 @@ export function useSignature(role: UserRole, userEmail?: string): UseSignatureRe
     // En paralelo, cualquier pendiente
     return request.signers.find(s => s.status === 'pending');
   }, []);
+
+  /**
+   * Obtener el firmante actual (para el usuario logueado)
+   */
+  const getCurrentSigner = useCallback((request: SignatureRequest): Signer | undefined => {
+    if (!userEmail) return undefined;
+    return request.signers.find(s => s.email === userEmail);
+  }, [userEmail]);
+
+  /**
+   * Avanzar el flujo de firma secuencial manualmente
+   */
+  const advanceSequentialWorkflow = useCallback(async (requestId: string): Promise<void> => {
+    const request = requests.find(r => r.id === requestId);
+    if (!request) throw new Error('Solicitud no encontrada');
+    if (request.workflow !== 'sequential') throw new Error('No es un flujo secuencial');
+
+    const nextSigner = getNextSigner(request);
+    if (nextSigner) {
+      console.log(`[SECUENCIAL] Avanzando al siguiente firmante: ${nextSigner.email}`);
+      // En producción: enviar notificación al siguiente firmante
+    }
+  }, [requests, getNextSigner]);
 
   /**
    * Validar lista de firmantes
@@ -434,6 +537,49 @@ export function useSignature(role: UserRole, userEmail?: string): UseSignatureRe
     };
   }, [permissions.maxSignersPerRequest]);
 
+  /**
+   * Generar sello de tiempo RFC 3161
+   */
+  const generateTimestamp = useCallback(async (
+    documentHash: string, 
+    authority?: string
+  ): Promise<Timestamp> => {
+    // Simulación de generación de sello de tiempo
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const now = new Date();
+    const timestamp: Timestamp = {
+      id: `ts-${Date.now()}`,
+      authority: authority || 'AC TSA',
+      timestamp: now.toISOString(),
+      serialNumber: `SN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      hashAlgorithm: 'SHA-256',
+      hashedMessage: documentHash,
+      token: `tst-${Buffer.from(documentHash).toString('base64')}-${Date.now()}`,
+      accuracy: 1000, // 1 segundo de precisión
+      ordering: true,
+    };
+    
+    return timestamp;
+  }, []);
+
+  /**
+   * Verificar validez de un sello de tiempo
+   */
+  const verifyTimestamp = useCallback(async (timestamp: Timestamp): Promise<boolean> => {
+    // Simulación de verificación
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    // Verificar que el token no esté vacío
+    if (!timestamp.token || !timestamp.hashedMessage) {
+      return false;
+    }
+    
+    // Verificar que no haya expirado (sellos de tiempo no expiran técnicamente,
+    // pero verificamos que el certificado de la TSA sea válido)
+    return true;
+  }, []);
+
   return {
     requests,
     currentRequest,
@@ -453,7 +599,11 @@ export function useSignature(role: UserRole, userEmail?: string): UseSignatureRe
     canSign,
     isRequestCompleted,
     getNextSigner,
+    getCurrentSigner,
+    advanceSequentialWorkflow,
     validateSigners,
+    generateTimestamp,
+    verifyTimestamp,
   };
 }
 

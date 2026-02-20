@@ -48,6 +48,7 @@ const alertasEjemplo: Alerta[] = [
     leida: true,
     diasAntes: 90,
     mensaje: 'Alerta: Prescripción próxima a vencer en 90 días',
+    nivelEscalacion: 'responsable',
   },
   {
     id: 'ALT-002',
@@ -58,6 +59,7 @@ const alertasEjemplo: Alerta[] = [
     leida: true,
     diasAntes: 60,
     mensaje: 'Alerta: Prescripción próxima a vencer en 60 días',
+    nivelEscalacion: 'responsable',
   },
   {
     id: 'ALT-003',
@@ -68,6 +70,7 @@ const alertasEjemplo: Alerta[] = [
     leida: false,
     diasAntes: 30,
     mensaje: 'Alerta URGENTE: Prescripción próxima a vencer en 30 días',
+    nivelEscalacion: 'responsable',
   },
   {
     id: 'ALT-004',
@@ -78,6 +81,7 @@ const alertasEjemplo: Alerta[] = [
     leida: true,
     diasAntes: 7,
     mensaje: 'Alerta CRÍTICA: Prescripción vence en 7 días',
+    nivelEscalacion: 'socio',
   },
   {
     id: 'ALT-005',
@@ -88,6 +92,7 @@ const alertasEjemplo: Alerta[] = [
     leida: false,
     diasAntes: 1,
     mensaje: 'Prescripción vence MAÑANA. Acción inmediata requerida.',
+    nivelEscalacion: 'direccion',
   },
 ];
 
@@ -236,6 +241,7 @@ export const prescripcionesData: Prescripcion[] = [
         leida: true,
         diasAntes: 90,
         mensaje: 'Alerta: Prescripción próxima a vencer',
+        nivelEscalacion: 'responsable',
       },
     ],
     fechaCreacion: new Date('2024-01-30'),
@@ -290,6 +296,7 @@ export const prescripcionesData: Prescripcion[] = [
         leida: true,
         diasAntes: 90,
         mensaje: 'Alerta: Prescripción próxima',
+        nivelEscalacion: 'responsable',
       },
     ],
     fechaCreacion: new Date('2024-01-28'),
